@@ -2,7 +2,7 @@ import { webview } from '@kit.ArkWeb';
 import { common } from '@kit.AbilityKit';
 import { router } from '@kit.ArkUI';
 import { TimetableRepo, SemesterRef, SemesterIndex, SyncedSemester } from '../model/TimetableRepo';
-import { JwSync, SyncedSemesterData } from '../model/JwSync';
+import { JwSync, SyncedSemesterData, GradeItem, ExamItem } from '../model/JwSync';
 
 /** 统一身份认证 → 教务系统（办事大厅点「教务系统」跳的就是这个） */
 const SSO_URL: string = 'https://uaaap.swu.edu.cn/cas/login?service=https%3A%2F%2Fjw.swu.edu.cn%2Fsso%2Fzllogin';
@@ -87,7 +87,34 @@ struct SyncPage {
         this.status = '没有拿到课表，请确认已登录教务系统';
         return;
       }
-      await this.save(all);
+
+      // 顺带把成绩和考试也拉下来
+      this.status = '正在抓取课表、成绩和考试…';
+      const grades: GradeItem[] = [];
+      const exams: ExamItem[] = [];
+      const year: number = new Date().getFullYear();
+      const combos: number[][] = [[year, 3], [year, 12], [year - 1, 3], [year - 1, 12]];
+      for (let i: number = 0; i < combos.length; i++) {
+        try {
+          const g: GradeItem[] = await JwSync.fetchGrades(cookie, combos[i][0], combos[i][1]);
+          for (let k: number = 0; k < g.length; k++) {
+            grades.push(g[k]);
+          }
+        } catch (err) {
+          // 单个学期失败不影响整体
+        }
+        try {
+          const e2: ExamItem[] = await JwSync.fetchExams(cookie, combos[i][0], combos[i][1]);
+          for (let k: number = 0; k < e2.length; k++) {
+            exams.push(e2[k]);
+          }
+        } catch (err) {
+          // 同上
+        }
+      }
+      exams.sort((a: ExamItem, b: ExamItem) => a.time.localeCompare(b.time));
+
+      await this.save(all, grades, exams);
     } catch (e) {
       this.busy = false;
       this.started = false;
@@ -96,7 +123,7 @@ struct SyncPage {
     }
   }
 
-  private async save(all: SyncedSemesterData[]): Promise<void> {
+  private async save(all: SyncedSemesterData[], grades: GradeItem[], exams: ExamItem[]): Promise<void> {
     const ctx: common.UIAbilityContext =
       this.getUIContext().getHostContext() as common.UIAbilityContext;
     if (ctx === undefined || ctx === null) {
@@ -142,6 +169,7 @@ struct SyncPage {
       items: items
     };
 
+    await TimetableRepo.saveExtras(ctx, JSON.stringify(grades), JSON.stringify(exams));
     const ok: boolean = await TimetableRepo.saveSynced(ctx, index, payloads);
     this.persistCookies();
     this.busy = false;

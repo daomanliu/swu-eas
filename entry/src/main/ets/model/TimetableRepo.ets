@@ -9,6 +9,8 @@ const KEY_CACHED_AT: string = 'timetable_cached_at';
 const RAWFILE: string = 'timetable.json';
 const KEY_INDEX: string = 'semesters_index';
 const KEY_LAST_SYNC: string = 'last_sync_at';
+const KEY_GRADES: string = 'grades_json';
+const KEY_EXAMS: string = 'exams_json';
 
 /** App 内同步得到的一个学期数据 */
 export interface SyncedSemester {
@@ -247,6 +249,42 @@ export class TimetableRepo {
     }
   }
 
+  /** 保存成绩 / 考试（原样 JSON 字符串） */
+  static async saveExtras(ctx: common.UIAbilityContext, gradesJson: string, examsJson: string): Promise<boolean> {
+    const store: preferences.Preferences | null = await TimetableRepo.openStore(ctx);
+    if (store === null) {
+      return false;
+    }
+    try {
+      store.putSync(KEY_GRADES, gradesJson);
+      store.putSync(KEY_EXAMS, examsJson);
+      await store.flush();
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  static async loadGrades(ctx: common.UIAbilityContext): Promise<string> {
+    return TimetableRepo.readPref(ctx, KEY_GRADES);
+  }
+
+  static async loadExams(ctx: common.UIAbilityContext): Promise<string> {
+    return TimetableRepo.readPref(ctx, KEY_EXAMS);
+  }
+
+  private static async readPref(ctx: common.UIAbilityContext, key: string): Promise<string> {
+    const store: preferences.Preferences | null = await TimetableRepo.openStore(ctx);
+    if (store === null) {
+      return '';
+    }
+    try {
+      return store.getSync(key, '') as string;
+    } catch (err) {
+      return '';
+    }
+  }
+
   /** 最后一次真正同步的时间；空表示从没同步过（当前用的是打包数据） */
   static async lastSyncAt(ctx: common.UIAbilityContext): Promise<string> {
     const store: preferences.Preferences | null = await TimetableRepo.openStore(ctx);
@@ -270,6 +308,8 @@ export class TimetableRepo {
       store.deleteSync(KEY_CACHED_AT);
       store.deleteSync(KEY_INDEX);
       store.deleteSync(KEY_LAST_SYNC);
+      store.deleteSync(KEY_GRADES);
+      store.deleteSync(KEY_EXAMS);
       const all: Object = store.getAllSync();
       const keys: string[] = Object.keys(all);
       for (let i: number = 0; i < keys.length; i++) {

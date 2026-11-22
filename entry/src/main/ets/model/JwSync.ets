@@ -41,6 +41,55 @@ interface ApiResp {
   sjkList: ApiSjkItem[];
 }
 
+/** 一条成绩 */
+export interface GradeItem {
+  term: string;
+  name: string;
+  score: string;
+  gpa: string;
+  credit: string;
+  nature: string;
+  teacher: string;
+  examType: string;
+}
+
+/** 一场考试 */
+export interface ExamItem {
+  term: string;
+  name: string;
+  time: string;
+  place: string;
+  teacher: string;
+  examName: string;
+}
+
+interface ApiGradeItem {
+  kcmc: string;
+  cj: string;
+  jd: string;
+  xf: string;
+  kcxzmc: string;
+  jsxm: string;
+  ksxz: string;
+}
+
+interface ApiExamItem {
+  kcmc: string;
+  kssj: string;
+  cdmc: string;
+  cdxqmc: string;
+  jsxx: string;
+  ksmc: string;
+}
+
+interface ApiGradeResp {
+  items: ApiGradeItem[];
+}
+
+interface ApiExamResp {
+  items: ApiExamItem[];
+}
+
 export interface SyncedSemesterData {
   key: string;
   label: string;
@@ -285,6 +334,92 @@ export class JwSync {
     } finally {
       req.destroy();
     }
+  }
+
+  private static termLabel(xn: number, xq: number): string {
+    const xqName: string = xq === 3 ? '1' : (xq === 12 ? '2' : '3');
+    return `${xn}-${xn + 1} 学年第 ${xqName} 学期`;
+  }
+
+  private static async post(cookie: string, url: string, body: string): Promise<string> {
+    const req: http.HttpRequest = http.createHttp();
+    try {
+      const resp: http.HttpResponse = await req.request(url, {
+        method: http.RequestMethod.POST,
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Cookie': cookie
+        },
+        extraData: body,
+        expectDataType: http.HttpDataType.STRING,
+        connectTimeout: 15000,
+        readTimeout: 20000
+      });
+      if (resp.responseCode === 901) {
+        throw new Error('EXPIRED');
+      }
+      if (resp.responseCode !== 200) {
+        return '';
+      }
+      return resp.result as string;
+    } finally {
+      req.destroy();
+    }
+  }
+
+  /** 某学期的成绩 */
+  static async fetchGrades(cookie: string, xn: number, xq: number): Promise<GradeItem[]> {
+    const body: string =
+      `xnm=${xn}&xqm=${xq}&_search=false&nd=${Date.now()}&queryModel.showCount=200&queryModel.currentPage=1&queryModel.sortName=&queryModel.sortOrder=asc&time=1`;
+    const text: string = await JwSync.post(cookie, 'https://jw.swu.edu.cn/jwglxt/cjcx/cjcx_cxDgXscj.html?doType=query&gnmkdm=N305005', body);
+    if (text === '') {
+      return [];
+    }
+    const parsed: ApiGradeResp = JSON.parse(text) as ApiGradeResp;
+    const items: ApiGradeItem[] = parsed.items === undefined || parsed.items === null ? [] : parsed.items;
+    const out: GradeItem[] = [];
+    for (let i: number = 0; i < items.length; i++) {
+      const it: ApiGradeItem = items[i];
+      out.push({
+        term: JwSync.termLabel(xn, xq),
+        name: String(it.kcmc === undefined ? '' : it.kcmc),
+        score: String(it.cj === undefined || it.cj === null ? '' : it.cj),
+        gpa: String(it.jd === undefined || it.jd === null ? '' : it.jd),
+        credit: String(it.xf === undefined || it.xf === null ? '' : it.xf),
+        nature: String(it.kcxzmc === undefined ? '' : it.kcxzmc),
+        teacher: String(it.jsxm === undefined ? '' : it.jsxm),
+        examType: String(it.ksxz === undefined ? '' : it.ksxz)
+      });
+    }
+    return out;
+  }
+
+  /** 某学期的考试安排 */
+  static async fetchExams(cookie: string, xn: number, xq: number): Promise<ExamItem[]> {
+    const body: string =
+      `xnm=${xn}&xqm=${xq}&ksmcdmb_id=&kch=&kc=&ksrq=&kkbm_id=&_search=false&nd=${Date.now()}&queryModel.showCount=200&queryModel.currentPage=1&queryModel.sortName=+&queryModel.sortOrder=asc&time=0`;
+    const text: string = await JwSync.post(cookie, 'https://jw.swu.edu.cn/jwglxt/kwgl/kscx_cxXsksxxIndex.html?doType=query&gnmkdm=N358105', body);
+    if (text === '') {
+      return [];
+    }
+    const parsed: ApiExamResp = JSON.parse(text) as ApiExamResp;
+    const items: ApiExamItem[] = parsed.items === undefined || parsed.items === null ? [] : parsed.items;
+    const out: ExamItem[] = [];
+    for (let i: number = 0; i < items.length; i++) {
+      const it: ApiExamItem = items[i];
+      const campus: string = String(it.cdxqmc === undefined || it.cdxqmc === null ? '' : it.cdxqmc).trim();
+      const room: string = String(it.cdmc === undefined || it.cdmc === null ? '' : it.cdmc).trim();
+      out.push({
+        term: JwSync.termLabel(xn, xq),
+        name: String(it.kcmc === undefined ? '' : it.kcmc),
+        time: String(it.kssj === undefined ? '' : it.kssj),
+        place: room === '' ? campus : (campus === '' ? room : `${campus} ${room}`),
+        teacher: String(it.jsxx === undefined ? '' : it.jsxx),
+        examName: String(it.ksmc === undefined ? '' : it.ksmc)
+      });
+    }
+    return out;
   }
 
   /** 拉最近两个学年、共 4 个学期 */
