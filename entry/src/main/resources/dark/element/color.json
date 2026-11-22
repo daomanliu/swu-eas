@@ -143,6 +143,30 @@
     {
       "name": "btn_disabled",
       "value": "#38465C"
+    },
+    {
+      "name": "course_text",
+      "value": "#E4EEFB"
+    },
+    {
+      "name": "course_loc",
+      "value": "#AEC6E4"
+    },
+    {
+      "name": "course_practice_text",
+      "value": "#D3EEDD"
+    },
+    {
+      "name": "course_practice_loc",
+      "value": "#A6D9B8"
+    },
+    {
+      "name": "card_material_bg",
+      "value": "#D91B1E23"
+    },
+    {
+      "name": "card_border",
+      "value": "#1FFFFFFF"
     }
   ]
 }

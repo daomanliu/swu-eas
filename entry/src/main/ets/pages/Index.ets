@@ -100,6 +100,8 @@ struct Index {
   private static readonly BASE_ROW: number = 54;
   private static readonly MIN_ZOOM: number = 0.7;
   private static readonly MAX_ZOOM: number = 1.7;
+  private static readonly BASE_TIME_W: number = 34;
+  private static readonly BASE_HEAD_H: number = 36;
   private static readonly BASE_NAME_FONT: number = 10;
   private static readonly BASE_LOC_FONT: number = 8;
 
@@ -109,6 +111,8 @@ struct Index {
     this.zoom = clamped;
     this.colW = Index.BASE_COL * clamped;
     this.rowH = Index.BASE_ROW * clamped;
+    this.timeW = Index.BASE_TIME_W * clamped;
+    this.headH = Index.BASE_HEAD_H * clamped;
   }
 
   private nameFont(): number {
@@ -919,7 +923,9 @@ struct Index {
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 11, bottom: 11 })
-    .backgroundColor($r('app.color.surface'))
+    .backgroundColor($r('app.color.card_material_bg'))
+    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(10)
     .margin({ bottom: 8 })
     .onClick(() => {
@@ -1420,7 +1426,9 @@ struct Index {
     .width('100%')
     .alignItems(HorizontalAlign.Start)
     .padding(12)
-    .backgroundColor($r('app.color.surface'))
+    .backgroundColor($r('app.color.card_material_bg'))
+    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(10)
     .margin({ bottom: 8 })
     .onClick(() => {
@@ -1682,7 +1690,9 @@ struct Index {
     .width('100%')
     .padding(14)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor($r('app.color.surface'))
+    .backgroundColor($r('app.color.card_material_bg'))
+    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(12)
     .margin({ left: 12, right: 12, top: 10 })
   }
@@ -1792,7 +1802,7 @@ struct Index {
         .width(this.timeW)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-      }, (p: Period) => `time_${p.index}`)
+      }, (p: Period) => `time_${this.zoom}_${p.index}`)
     }
     .width(this.timeW)
   }
@@ -1812,13 +1822,13 @@ struct Index {
           .height(this.headH)
           .justifyContent(FlexAlign.Center)
           .backgroundColor(this.today() === w.index ? $r('app.color.cell_today') : $r('app.color.surface'))
-        }, (w: Weekday) => `head_${w.index}`)
+        }, (w: Weekday) => `head_${this.zoom}_${w.index}`)
       }
 
       Row() {
         ForEach(WEEKDAYS, (w: Weekday) => {
           this.dayColumn(w.index)
-        }, (w: Weekday) => `col_${w.index}`)
+        }, (w: Weekday) => `col_${this.zoom}_${w.index}`)
       }
       .alignItems(VerticalAlign.Top)
     }
@@ -1842,7 +1852,7 @@ struct Index {
         .width('100%')
         .height(s.span * this.rowH)
         .padding(1)
-      }, (s: Slot) => `${this.week}_${day}_${s.period}_${s.course === null ? 'x' : s.course.id}`)
+      }, (s: Slot) => `${this.week}_${this.zoom}_${day}_${s.period}_${s.course === null ? 'x' : s.course.id}`)
     }
     .width(this.colW)
   }
@@ -1853,12 +1863,12 @@ struct Index {
       Text(c.name)
         .fontSize(this.nameFont())
         .lineHeight(this.nameFont() * 1.3)
-        .fontColor(c.practice ? $r('app.color.success_text') : $r('app.color.brand_bg_deep'))
+        .fontColor(c.practice ? $r('app.color.course_practice_text') : $r('app.color.course_text'))
         .maxLines(3)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
       Text(c.location)
         .fontSize(this.locFont())
-        .fontColor(c.practice ? $r('app.color.success_text2') : $r('app.color.brand_text_dim'))
+        .fontColor(c.practice ? $r('app.color.course_practice_loc') : $r('app.color.course_loc'))
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .margin({ top: 2 })
@@ -1920,7 +1930,9 @@ struct Index {
     .width('100%')
     .padding(10)
     .margin({ bottom: 8 })
-    .backgroundColor($r('app.color.surface'))
+    .backgroundColor($r('app.color.card_material_bg'))
+    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(8)
   }
 
