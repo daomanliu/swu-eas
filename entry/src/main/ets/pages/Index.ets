@@ -779,7 +779,7 @@ struct Index {
         .layoutWeight(1)
         .scrollBar(BarState.Off)
         .padding({ top: 8, bottom: 12 })
-        .contentEndOffset(88)
+        .contentEndOffset(70)
       }
     }
     .width('100%')
@@ -866,7 +866,7 @@ struct Index {
         .layoutWeight(1)
         .scrollBar(BarState.Off)
         .padding({ left: 14, right: 14, bottom: 12 })
-        .contentEndOffset(88)
+        .contentEndOffset(70)
       }
     }
     .width('100%')
@@ -1136,7 +1136,7 @@ struct Index {
         .layoutWeight(1)
         .scrollBar(BarState.Off)
         .padding({ left: 14, right: 14, top: 8, bottom: 12 })
-        .contentEndOffset(88)
+        .contentEndOffset(70)
       }
     }
     .width('100%')
