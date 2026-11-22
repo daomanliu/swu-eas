@@ -20,11 +20,12 @@ export struct SyncPage {
 
   @StorageProp('topInset') topInset: number = 0;
 
-  @State status: string = '登录完成后，点下方按钮同步';
+  // 用 AppStorage 承载，宿主重建组件时结果页不会丢
+  @StorageLink('syncStatus') status: string = '登录完成后，点下方按钮同步';
+  @StorageLink('syncDone') done: boolean = false;
   @State currentUrl: string = '';
   @State debugInfo: string = '';
   @State busy: boolean = false;
-  @State done: boolean = false;
 
   private controller: webview.WebviewController = new webview.WebviewController();
   private timerId: number = -1;
@@ -265,10 +266,8 @@ export struct SyncPage {
         ? `已同步课表，但${this.firstErr}`
         : `同步完成：${summary}`)
       : '写入本地失败';
-    if (ok) {
-      // 通知宿主刷新数据，但浮层保持打开，由用户点"查看课表"再关
-      this.onSynced();
-    }
+    // 不在这里通知宿主：宿主一刷新会重建登录浮层，结果页就没了
+    // 数据在点"查看课表"时由 onDone 统一刷新
   }
 
   build() {
