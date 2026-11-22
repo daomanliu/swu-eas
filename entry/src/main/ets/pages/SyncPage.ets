@@ -19,6 +19,9 @@ struct SyncPage {
 
   private controller: webview.WebviewController = new webview.WebviewController();
   private timerId: number = -1;
+  private gradeCount: number = 0;
+  private examCount: number = 0;
+  private firstErr: string = '';
   private started: boolean = false;
 
   aboutToAppear(): void {
@@ -77,6 +80,16 @@ struct SyncPage {
     }
   }
 
+  private async clearAll(): Promise<void> {
+    const ctx: common.UIAbilityContext =
+      this.getUIContext().getHostContext() as common.UIAbilityContext;
+    if (ctx === undefined || ctx === null) {
+      return;
+    }
+    await TimetableRepo.clear(ctx);
+    this.status = '已清空本地数据，返回后即为空';
+  }
+
   private async runSync(cookie: string): Promise<void> {
     this.busy = true;
     try {
@@ -101,7 +114,9 @@ struct SyncPage {
             grades.push(g[k]);
           }
         } catch (err) {
-          // 单个学期失败不影响整体
+          if (this.firstErr === '') {
+            this.firstErr = '成绩：' + (err as Error).message.slice(0, 40);
+          }
         }
         try {
           const e2: ExamItem[] = await JwSync.fetchExams(cookie, combos[i][0], combos[i][1]);
@@ -109,10 +124,14 @@ struct SyncPage {
             exams.push(e2[k]);
           }
         } catch (err) {
-          // 同上
+          if (this.firstErr === '') {
+            this.firstErr = '考试：' + (err as Error).message.slice(0, 40);
+          }
         }
       }
       exams.sort((a: ExamItem, b: ExamItem) => a.time.localeCompare(b.time));
+      this.gradeCount = grades.length;
+      this.examCount = exams.length;
 
       await this.save(all, grades, exams);
     } catch (e) {
@@ -174,7 +193,13 @@ struct SyncPage {
     this.persistCookies();
     this.busy = false;
     this.done = ok;
-    this.status = ok ? `同步完成：${items.length} 个学期` : '写入本地失败';
+    const summary: string =
+      `课表 ${items.length} 学期 · 成绩 ${this.gradeCount} 门 · 考试 ${this.examCount} 场`;
+    this.status = ok
+      ? (this.gradeCount === 0 && this.firstErr !== ''
+        ? `已同步课表，但${this.firstErr}`
+        : `同步完成：${summary}`)
+      : '写入本地失败';
     if (ok) {
       setTimeout(() => {
         router.back();
@@ -201,7 +226,14 @@ struct SyncPage {
           .layoutWeight(1)
           .textAlign(TextAlign.Center)
 
-        Text('').width(72)
+        Text('清空数据')
+          .fontSize(12)
+          .fontColor('#B4543A')
+          .width(72)
+          .textAlign(TextAlign.End)
+          .onClick(() => {
+            this.clearAll();
+          })
       }
       .width('100%')
       .height(52)

@@ -20,6 +20,7 @@ import {
   todayIndex
 } from '../model/TimetableData';
 import { router, uiMaterial } from '@kit.ArkUI';
+import { HdsTabs, HdsTabsController, hdsMaterial } from '@kit.UIDesignKit';
 import { TimetableRepo, LoadResult, SemesterRef } from '../model/TimetableRepo';
 import { GradeItem, ExamItem } from '../model/JwSync';
 
@@ -39,6 +40,8 @@ interface GradeRow {
   gpa: string;
   credit: string;
   nature: string;
+  teacher: string;
+  examType: string;
 }
 
 const EMPTY_NOW: NowItem = { kind: 'none', course: null, minutes: 0, dayOffset: -1 };
@@ -65,8 +68,13 @@ struct Index {
   @State showGradeTerm: boolean = false;
   @State showExamTerm: boolean = false;
   @State materialOk: boolean = false;
+  @State selGrade: GradeRow | null = null;
+  @State showGradeDetail: boolean = false;
+  @State selExam: ExamItem | null = null;
+  @State showExamDetail: boolean = false;
 
   private material: uiMaterial.ImmersiveMaterial | undefined = undefined;
+  private hdsController: HdsTabsController = new HdsTabsController();
   @State updatedAt: string = '';
   @State semesters: SemesterRef[] = [];
   @State semesterKey: string = '';
@@ -160,6 +168,7 @@ struct Index {
         this.exams = [];
       }
     }
+    this.resetDefaultTerms();
 
     const idx = await TimetableRepo.loadIndexCached(ctx);
     if (idx !== null) {
@@ -204,6 +213,25 @@ struct Index {
       return;
     }
     this.lastSyncAt = await TimetableRepo.lastSyncAt(ctx);
+
+    const gradesJson: string = await TimetableRepo.loadGrades(ctx);
+    const examsJson: string = await TimetableRepo.loadExams(ctx);
+    if (gradesJson !== '') {
+      try {
+        this.grades = JSON.parse(gradesJson) as GradeItem[];
+      } catch (err) {
+        this.grades = [];
+      }
+    }
+    if (examsJson !== '') {
+      try {
+        this.exams = JSON.parse(examsJson) as ExamItem[];
+      } catch (err) {
+        this.exams = [];
+      }
+    }
+    this.resetDefaultTerms();
+
     const idx = await TimetableRepo.loadIndexCached(ctx);
     if (idx !== null) {
       this.semesters = idx.items;
@@ -391,6 +419,27 @@ struct Index {
       : `本周（第 ${this.week} 周）不上这门课`;
   }
 
+  private resetDefaultTerms(): void {
+    if (this.gradeTerm === '') {
+      const gt: string[] = [];
+      for (let i: number = 0; i < this.grades.length; i++) {
+        if (gt.indexOf(this.grades[i].term) < 0) {
+          gt.push(this.grades[i].term);
+        }
+      }
+      this.gradeTerm = this.pickDefaultTerm(gt);
+    }
+    if (this.examTerm === '') {
+      const et: string[] = [];
+      for (let i: number = 0; i < this.exams.length; i++) {
+        if (et.indexOf(this.exams[i].term) < 0) {
+          et.push(this.exams[i].term);
+        }
+      }
+      this.examTerm = this.pickDefaultTerm(et);
+    }
+  }
+
   /** 把成绩摊平成"学期标题 + 成绩"的行，顺便算该学期加权均分 */
   private gradeRows(): GradeRow[] {
     const rows: GradeRow[] = [];
@@ -430,14 +479,16 @@ struct Index {
         kind: 'term',
         term: term,
         summary: `${items.length} 门 · 均分 ${avg} · 绩点 ${gpaAvg}`,
-        name: '', score: '', gpa: '', credit: '', nature: ''
+        name: '', score: '', gpa: '', credit: '', nature: '',
+        teacher: '', examType: ''
       });
       for (let j: number = 0; j < items.length; j++) {
         const it: GradeItem = items[j];
         rows.push({
           kind: 'item', term: term, summary: '',
           name: it.name, score: it.score, gpa: it.gpa,
-          credit: it.credit, nature: it.nature
+          credit: it.credit, nature: it.nature,
+          teacher: it.teacher, examType: it.examType
         });
       }
     }
@@ -566,6 +617,29 @@ struct Index {
     .alignItems(HorizontalAlign.Start)
   }
 
+  /** 当前学期的显示名，如 "2026-2027 学年第 1 学期" */
+  private currentTermLabel(): string {
+    const now = new Date();
+    const m: number = now.getMonth() + 1;
+    const y: number = now.getFullYear();
+    const xn: number = (m >= 9) ? y : y - 1;
+    const xq: number = (m >= 9 || m <= 1) ? 1 : 2;
+    return `${xn}-${xn + 1} 学年第 ${xq} 学期`;
+  }
+
+  /** 优先本学期；本学期没数据时退回最新一个有数据的学期 */
+  private pickDefaultTerm(terms: string[]): string {
+    if (terms.length === 0) {
+      return '';
+    }
+    const cur: string = this.currentTermLabel();
+    if (terms.indexOf(cur) >= 0) {
+      return cur;
+    }
+    const sorted: string[] = terms.slice().sort((a: string, b: string) => b.localeCompare(a));
+    return sorted[0];
+  }
+
   private gradeTerms(): string[] {
     const termSet: string[] = [];
     for (let i: number = 0; i < this.grades.length; i++) {
@@ -608,19 +682,48 @@ struct Index {
 
   build() {
     Stack({ alignContent: Alignment.Bottom }) {
-      Column() {
-        if (this.tab === 0) {
+      HdsTabs({ barPosition: BarPosition.End, controller: this.hdsController }) {
+        TabContent() {
           this.timetablePage()
-        } else if (this.tab === 1) {
+        }
+        .tabBar(this.tabIcon($r('sys.symbol.calendar'), $r('sys.symbol.calendar'), '课表', 0))
+
+        TabContent() {
           this.gradesPage()
-        } else {
+        }
+        .tabBar(this.tabIcon($r('sys.symbol.graduationcap'), $r('sys.symbol.graduationcap'), '成绩', 1))
+
+        TabContent() {
           this.examsPage()
         }
+        .tabBar(this.tabIcon($r('sys.symbol.doc_text'), $r('sys.symbol.doc_text'), '考试', 2))
+
+        TabContent() {
+          Column()
+            .width('100%')
+            .height('100%')
+        }
+        .tabBar(this.tabIcon($r('sys.symbol.arrow_clockwise'), $r('sys.symbol.arrow_clockwise'), '同步', 3))
       }
+      .barOverlap(true)
+      .barPosition(BarPosition.End)
+      .barFloatingStyle({
+        barSideMargin: 16,
+        barBottomMargin: 12,
+        systemMaterialEffect: {
+          materialType: hdsMaterial.MaterialType.ADAPTIVE,
+          materialLevel: hdsMaterial.MaterialLevel.ADAPTIVE
+        }
+      })
+      .onChange((index: number) => {
+        this.tab = index === 3 ? 0 : index;
+        if (index === 3) {
+          this.hdsController.changeIndex(0);
+          router.pushUrl({ url: 'pages/SyncPage' });
+        }
+      })
       .width('100%')
       .height('100%')
-
-      this.navBar()
     }
     .width('100%')
     .height('100%')
@@ -651,7 +754,7 @@ struct Index {
         .layoutWeight(1)
         .justifyContent(FlexAlign.Center)
       } else if (this.courses.length === 0) {
-        this.emptyState()
+        this.pageEmpty($r('sys.symbol.calendar'), '还没有课表', '登录一次教务系统，自动抓取全部学期')
       } else {
         if (this.semesterKey === this.currentSemesterKey()) {
           this.nowCard()
@@ -673,7 +776,7 @@ struct Index {
         }
         .layoutWeight(1)
         .scrollBar(BarState.Off)
-        .padding({ top: 8, bottom: 16 })
+        .padding({ top: 8, bottom: 120 })
       }
     }
     .width('100%')
@@ -733,7 +836,7 @@ struct Index {
       })
 
       if (this.grades.length === 0) {
-        this.tabEmpty('还没有成绩', '点「从教务系统同步」获取')
+        this.pageEmpty($r('sys.symbol.graduationcap'), '还没有成绩', '登录一次教务系统，自动抓取全部学期成绩')
       } else {
         List() {
           ForEach(this.gradeRows(), (r: GradeRow) => {
@@ -759,11 +862,21 @@ struct Index {
         }
         .layoutWeight(1)
         .scrollBar(BarState.Off)
-        .padding({ bottom: 110 })
+        .padding({ left: 14, right: 14, bottom: 120 })
       }
     }
     .width('100%')
     .height('100%')
+    .bindSheet(this.showGradeDetail, this.gradeDetailSheet(), {
+      height: SheetSize.FIT_CONTENT,
+      dragBar: true,
+      showClose: false,
+      backgroundColor: '#FFFFFF',
+      onDisappear: () => {
+        this.showGradeDetail = false;
+        this.selGrade = null;
+      }
+    })
   }
 
   @Builder
@@ -799,7 +912,159 @@ struct Index {
     .padding({ left: 16, right: 16, top: 11, bottom: 11 })
     .backgroundColor('#FFFFFF')
     .borderRadius(10)
-    .margin({ left: 14, right: 14, bottom: 8 })
+    .margin({ bottom: 8 })
+    .onClick(() => {
+      this.selGrade = r;
+      this.showGradeDetail = true;
+    })
+  }
+
+  @Builder
+  gradeDetailSheet() {
+    Column() {
+      if (this.selGrade !== null) {
+        Text((this.selGrade as GradeRow).name)
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#16233A')
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Text((this.selGrade as GradeRow).term)
+          .fontSize(11)
+          .fontColor('#8A94A6')
+          .margin({ top: 6 })
+
+        Row() {
+          Text((this.selGrade as GradeRow).score)
+            .fontSize(34)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.scoreColor((this.selGrade as GradeRow).score))
+          Text('分')
+            .fontSize(12)
+            .fontColor('#8A94A6')
+            .margin({ left: 4, bottom: 6 })
+          Blank()
+          Column() {
+            Text(`绩点 ${(this.selGrade as GradeRow).gpa}`)
+              .fontSize(13)
+              .fontColor('#3A4657')
+            Text(`${(this.selGrade as GradeRow).credit} 学分`)
+              .fontSize(11)
+              .fontColor('#8A94A6')
+              .margin({ top: 3 })
+          }
+          .alignItems(HorizontalAlign.End)
+        }
+        .width('100%')
+        .margin({ top: 10 })
+
+        Divider().color('#EEF1F5').margin({ top: 12, bottom: 10 })
+
+        Row() {
+          Text('课程性质').fontSize(12).fontColor('#8A94A6').width(72)
+          Text((this.selGrade as GradeRow).nature)
+            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+        }.width('100%')
+
+        Row() {
+          Text('任课教师').fontSize(12).fontColor('#8A94A6').width(72)
+          Text((this.selGrade as GradeRow).teacher)
+            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+        }.width('100%').margin({ top: 8 })
+
+        Row() {
+          Text('考核方式').fontSize(12).fontColor('#8A94A6').width(72)
+          Text((this.selGrade as GradeRow).examType)
+            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+        }.width('100%').margin({ top: 8 })
+
+        Text('平时/期末等分项成绩需在教务「成绩明细查询」查看')
+          .fontSize(9)
+          .fontColor('#B0B8C4')
+          .margin({ top: 14 })
+      }
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 8, bottom: 24 })
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  examDetailSheet() {
+    Column() {
+      if (this.selExam !== null) {
+        Text((this.selExam as ExamItem).name)
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#16233A')
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Text((this.selExam as ExamItem).examName)
+          .fontSize(11)
+          .fontColor('#8A94A6')
+          .margin({ top: 6 })
+
+        Row() {
+          Column() {
+            Text(this.examDate((this.selExam as ExamItem).time))
+              .fontSize(28)
+              .fontWeight(FontWeight.Bold)
+              .fontColor('#1E4E8C')
+            Text('考试日期')
+              .fontSize(9)
+              .fontColor('#9AA4B2')
+              .margin({ top: 2 })
+          }
+          .alignItems(HorizontalAlign.Start)
+
+          Blank()
+
+          Column() {
+            Text(this.examTime((this.selExam as ExamItem).time))
+              .fontSize(18)
+              .fontWeight(FontWeight.Bold)
+              .fontColor('#26313F')
+            Text('考试时段')
+              .fontSize(9)
+              .fontColor('#9AA4B2')
+              .margin({ top: 2 })
+          }
+          .alignItems(HorizontalAlign.End)
+        }
+        .width('100%')
+        .margin({ top: 12 })
+
+        Divider().color('#EEF1F5').margin({ top: 14, bottom: 10 })
+
+        Row() {
+          Text('考场').fontSize(12).fontColor('#8A94A6').width(72)
+          Text((this.selExam as ExamItem).place)
+            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+        }.width('100%')
+
+        Row() {
+          Text('教师').fontSize(12).fontColor('#8A94A6').width(72)
+          Text((this.selExam as ExamItem).teacher)
+            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+        }.width('100%').margin({ top: 8 })
+
+        Row() {
+          Text('学期').fontSize(12).fontColor('#8A94A6').width(72)
+          Text((this.selExam as ExamItem).term)
+            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+        }.width('100%').margin({ top: 8 })
+
+        Text('具体座位号请以教务系统公布的考场安排为准')
+          .fontSize(9)
+          .fontColor('#B0B8C4')
+          .margin({ top: 14 })
+      }
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 8, bottom: 24 })
+    .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
@@ -855,7 +1120,7 @@ struct Index {
       })
 
       if (this.exams.length === 0) {
-        this.tabEmpty('还没有考试安排', '期末考试排出来后同步一次即可')
+        this.pageEmpty($r('sys.symbol.doc_text'), '还没有考试安排', '期末考试排出来后同步一次即可')
       } else {
         List() {
           ForEach(this.examsFiltered(), (it: ExamItem) => {
@@ -866,11 +1131,21 @@ struct Index {
         }
         .layoutWeight(1)
         .scrollBar(BarState.Off)
-        .padding({ top: 8, bottom: 110 })
+        .padding({ left: 14, right: 14, top: 8, bottom: 120 })
       }
     }
     .width('100%')
     .height('100%')
+    .bindSheet(this.showExamDetail, this.examDetailSheet(), {
+      height: SheetSize.FIT_CONTENT,
+      dragBar: true,
+      showClose: false,
+      backgroundColor: '#FFFFFF',
+      onDisappear: () => {
+        this.showExamDetail = false;
+        this.selExam = null;
+      }
+    })
   }
 
   @Builder
@@ -919,104 +1194,30 @@ struct Index {
     .padding(12)
     .backgroundColor('#FFFFFF')
     .borderRadius(10)
-    .margin({ left: 14, right: 14, bottom: 8 })
-  }
-
-  @Builder
-  tabEmpty(title: string, hint: string) {
-    Column() {
-      Text(title)
-        .fontSize(15)
-        .fontWeight(FontWeight.Medium)
-        .fontColor('#3A4657')
-      Text(hint)
-        .fontSize(11)
-        .fontColor('#8A94A6')
-        .margin({ top: 8 })
-    }
-    .width('100%')
-    .layoutWeight(1)
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
-  }
-
-  @Builder
-  navBar() {
-    Stack({ alignContent: Alignment.Bottom }) {
-      Column()
-        .width('100%')
-        .height(132)
-        .linearGradient({
-          angle: 180,
-          colors: [['#00F2F4F7', 0.0], ['#EEF2F4F7', 1.0]]
-        })
-
-      // 极淡底衬 + 光边：保证在纯色背景上也有轮廓（系统材质只负责折射光感）
-      Column()
-        .width('86%')
-        .height(62)
-        .margin({ bottom: 24 })
-        .borderRadius(31)
-        .backgroundColor('#0DFFFFFF')
-        .border({ width: 0.5, color: '#33FFFFFF' })
-
-      Row() {
-        this.navItem(0, '课表', $r('sys.symbol.calendar'))
-        this.navItem(1, '成绩', $r('sys.symbol.graduationcap'))
-        this.navItem(2, '考试', $r('sys.symbol.doc_text'))
-        this.navSync('同步', $r('sys.symbol.arrow_clockwise'))
-      }
-      .width('86%')
-      .height(62)
-      .margin({ bottom: 24 })
-      .borderRadius(31)
-      .systemMaterial(this.materialOk ? this.material : undefined)
-      .backgroundBlurStyle(this.materialOk ? BlurStyle.NONE : BlurStyle.COMPONENT_THIN)
-      .backgroundColor(this.materialOk ? Color.Transparent : '#66FFFFFF')
-      .shadow(this.materialOk ? undefined : { radius: 24, color: '#14000000', offsetY: 6 })
-    }
-    .width('100%')
-    .height(132)
-  }
-
-  /** 导航栏里的"同步"动作项：不参与选中态，点击直接进同步页 */
-  @Builder
-  navSync(label: string, icon: Resource) {
-    Column() {
-      SymbolGlyph(icon)
-        .fontSize(20)
-        .fontColor(['#1E4E8C'])
-      Text(label)
-        .fontSize(10)
-        .fontColor('#1E4E8C')
-        .margin({ top: 3 })
-    }
-    .layoutWeight(1)
-    .height('100%')
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
+    .margin({ bottom: 8 })
     .onClick(() => {
-      router.pushUrl({ url: 'pages/SyncPage' });
+      this.selExam = it;
+      this.showExamDetail = true;
     })
   }
 
+  /** Tab 图标（参考项目同款：选中态主色 + 中等字重） */
   @Builder
-  navItem(idx: number, label: string, icon: Resource) {
-    Column() {
-      SymbolGlyph(icon)
-        .fontSize(20)
-        .fontColor([this.tab === idx ? '#1E4E8C' : '#9AA4B2'])
+  tabIcon(iconNormal: Resource, iconSelected: Resource, label: string, idx: number) {
+    Column({ space: 2 }) {
+      SymbolGlyph(this.tab === idx ? iconSelected : iconNormal)
+        .fontSize(21)
+        .fontColor(this.tab === idx ? ['#1E4E8C'] : ['#8A94A6'])
       Text(label)
         .fontSize(10)
-        .fontColor(this.tab === idx ? '#1E4E8C' : '#9AA4B2')
-        .margin({ top: 3 })
+        .fontWeight(this.tab === idx ? FontWeight.Medium : FontWeight.Normal)
+        .fontColor(this.tab === idx ? '#1E4E8C' : '#8A94A6')
     }
-    .layoutWeight(1)
+    .width('100%')
     .height('100%')
     .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
     .onClick(() => {
-      this.tab = idx;
+      this.hdsController.changeIndex(idx);
     })
   }
 
@@ -1257,11 +1458,12 @@ struct Index {
     .margin({ left: 12, right: 12, top: 10 })
   }
 
+  /** 三个页签共用的空态：图标卡片 + 标题 + 说明 + 同步按钮 + 隐私说明 */
   @Builder
-  emptyState() {
+  pageEmpty(icon: Resource, title: string, hint: string) {
     Column() {
       Column() {
-        SymbolGlyph($r('sys.symbol.calendar'))
+        SymbolGlyph(icon)
           .fontSize(40)
           .fontColor(['#C5D3E6'])
       }
@@ -1272,13 +1474,13 @@ struct Index {
       .borderRadius(20)
       .backgroundColor('#EAF0F8')
 
-      Text('还没有课表')
+      Text(title)
         .fontSize(17)
         .fontWeight(FontWeight.Bold)
         .fontColor('#26313F')
         .margin({ top: 18 })
 
-      Text('登录一次教务系统，自动抓取全部学期')
+      Text(hint)
         .fontSize(11)
         .fontColor('#8A94A6')
         .textAlign(TextAlign.Center)

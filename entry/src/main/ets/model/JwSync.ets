@@ -349,6 +349,7 @@ export class JwSync {
         header: {
           'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
           'X-Requested-With': 'XMLHttpRequest',
+          'Referer': 'https://jw.swu.edu.cn/jwglxt/xtgl/index_initMenu.html',
           'Cookie': cookie
         },
         extraData: body,
@@ -375,6 +376,9 @@ export class JwSync {
     const text: string = await JwSync.post(cookie, 'https://jw.swu.edu.cn/jwglxt/cjcx/cjcx_cxDgXscj.html?doType=query&gnmkdm=N305005', body);
     if (text === '') {
       return [];
+    }
+    if (text.charAt(0) !== '{') {
+      throw new Error('成绩接口返回非 JSON');
     }
     const parsed: ApiGradeResp = JSON.parse(text) as ApiGradeResp;
     const items: ApiGradeItem[] = parsed.items === undefined || parsed.items === null ? [] : parsed.items;
@@ -403,6 +407,9 @@ export class JwSync {
     if (text === '') {
       return [];
     }
+    if (text.charAt(0) !== '{') {
+      throw new Error('考试接口返回非 JSON');
+    }
     const parsed: ApiExamResp = JSON.parse(text) as ApiExamResp;
     const items: ApiExamItem[] = parsed.items === undefined || parsed.items === null ? [] : parsed.items;
     const out: ExamItem[] = [];
@@ -415,7 +422,7 @@ export class JwSync {
         name: String(it.kcmc === undefined ? '' : it.kcmc),
         time: String(it.kssj === undefined ? '' : it.kssj),
         place: room === '' ? campus : (campus === '' ? room : `${campus} ${room}`),
-        teacher: String(it.jsxx === undefined ? '' : it.jsxx),
+        teacher: String(it.jsxx === undefined ? '' : it.jsxx).split('/').pop() ?? '',
         examName: String(it.ksmc === undefined ? '' : it.ksmc)
       });
     }
