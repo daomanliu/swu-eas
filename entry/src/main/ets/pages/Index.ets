@@ -21,6 +21,7 @@ import {
 } from '../model/TimetableData';
 import { router, uiMaterial } from '@kit.ArkUI';
 import { HdsTabs, HdsTabsController, hdsMaterial } from '@kit.UIDesignKit';
+import { SyncPage } from './SyncPage';
 import { TimetableRepo, LoadResult, SemesterRef } from '../model/TimetableRepo';
 import { GradeItem, ExamItem } from '../model/JwSync';
 
@@ -699,9 +700,11 @@ struct Index {
         .tabBar(this.tabIcon($r('sys.symbol.doc_text'), $r('sys.symbol.doc_text'), '考试', 2))
 
         TabContent() {
-          Column()
-            .width('100%')
-            .height('100%')
+          SyncPage({
+            onSynced: () => {
+              this.reload();
+            }
+          })
         }
         .tabBar(this.tabIcon($r('sys.symbol.arrow_clockwise'), $r('sys.symbol.arrow_clockwise'), '同步', 3))
       }
@@ -718,11 +721,7 @@ struct Index {
         }
       })
       .onChange((index: number) => {
-        this.tab = index === 3 ? 0 : index;
-        if (index === 3) {
-          this.hdsController.changeIndex(0);
-          router.pushUrl({ url: 'pages/SyncPage' });
-        }
+        this.tab = index;
       })
       .width('100%')
       .height('100%')
@@ -1502,7 +1501,8 @@ struct Index {
       .backgroundColor('#1E4E8C')
       .margin({ top: 22 })
       .onClick(() => {
-        router.pushUrl({ url: 'pages/SyncPage' });
+        this.tab = 3;
+        this.hdsController.changeIndex(3);
       })
 
       Text('数据只存在本机，不经过任何服务器')

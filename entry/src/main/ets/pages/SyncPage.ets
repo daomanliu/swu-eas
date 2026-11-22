@@ -1,6 +1,5 @@
 import { webview } from '@kit.ArkWeb';
 import { common } from '@kit.AbilityKit';
-import { router } from '@kit.ArkUI';
 import { TimetableRepo, SemesterRef, SemesterIndex, SyncedSemester } from '../model/TimetableRepo';
 import { JwSync, SyncedSemesterData, GradeItem, ExamItem } from '../model/JwSync';
 
@@ -8,9 +7,11 @@ import { JwSync, SyncedSemesterData, GradeItem, ExamItem } from '../model/JwSync
 const SSO_URL: string = 'https://uaaap.swu.edu.cn/cas/login?service=https%3A%2F%2Fjw.swu.edu.cn%2Fsso%2Fzllogin';
 const JW_KBCX: string = 'https://jw.swu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N253508&layout=default';
 
-@Entry
 @Component
-struct SyncPage {
+export struct SyncPage {
+  /** 同步成功后通知宿主（切回课表并刷新） */
+  onSynced: () => void = () => {};
+
   @State status: string = '正在打开统一身份认证…';
   @State currentUrl: string = '';
   @State debugInfo: string = '';
@@ -202,7 +203,7 @@ struct SyncPage {
       : '写入本地失败';
     if (ok) {
       setTimeout(() => {
-        router.back();
+        this.onSynced();
       }, 900);
     }
   }
@@ -210,25 +211,15 @@ struct SyncPage {
   build() {
     Column() {
       Row() {
-        Row() {
-          SymbolGlyph($r('sys.symbol.chevron_left')).fontSize(14).fontColor(['#1E4E8C'])
-          Text('返回').fontSize(14).fontColor('#1E4E8C').margin({ left: 2 })
-        }
-        .width(72)
-        .onClick(() => {
-          router.back();
-        })
-
         Text('从教务系统同步')
-          .fontSize(16)
+          .fontSize(19)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#16233A')
+          .fontColor('#FFFFFF')
           .layoutWeight(1)
-          .textAlign(TextAlign.Center)
 
         Text('清空数据')
           .fontSize(12)
-          .fontColor('#B4543A')
+          .fontColor('#FFC9BA')
           .width(72)
           .textAlign(TextAlign.End)
           .onClick(() => {
@@ -236,9 +227,9 @@ struct SyncPage {
           })
       }
       .width('100%')
-      .height(52)
-      .padding({ left: 12, right: 12 })
-      .backgroundColor('#FFFFFF')
+      .height(56)
+      .padding({ left: 16, right: 14 })
+      .backgroundColor('#1E4E8C')
 
       Row() {
         if (this.busy) {
@@ -252,6 +243,7 @@ struct SyncPage {
       .width('100%')
       .padding({ left: 14, right: 14, top: 8, bottom: 4 })
       .backgroundColor('#F7F9FC')
+      .visibility(this.done ? Visibility.None : Visibility.Visible)
 
       Row() {
         Column() {
@@ -287,14 +279,59 @@ struct SyncPage {
       .width('100%')
       .padding({ left: 14, right: 14, bottom: 8 })
       .backgroundColor('#F7F9FC')
+      .visibility(this.done ? Visibility.None : Visibility.Visible)
 
-      Web({ src: SSO_URL, controller: this.controller })
-        .javaScriptAccess(true)
-        .domStorageAccess(true)
-        .fileAccess(false)
-        .mixedMode(MixedMode.All)
+      if (this.done) {
+        Column() {
+          SymbolGlyph($r('sys.symbol.checkmark_circle_fill'))
+            .fontSize(46)
+            .fontColor(['#19A461'])
+          Text('同步完成')
+            .fontSize(17)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#26313F')
+            .margin({ top: 14 })
+          Text(this.status)
+            .fontSize(12)
+            .fontColor('#6B7686')
+            .margin({ top: 8 })
+            .textAlign(TextAlign.Center)
+
+          Row() {
+            Text('重新同步')
+              .fontSize(14)
+              .fontColor('#1E4E8C')
+          }
+          .padding({ left: 22, right: 22, top: 9, bottom: 9 })
+          .borderRadius(18)
+          .backgroundColor('#E6EEF9')
+          .margin({ top: 20 })
+          .onClick(() => {
+            this.done = false;
+            this.started = false;
+            this.status = '正在打开统一身份认证…';
+            try {
+              this.controller.loadUrl(SSO_URL);
+            } catch (err) {
+              // 忽略
+            }
+          })
+        }
         .width('100%')
         .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .backgroundColor('#F2F4F7')
+      } else {
+        Web({ src: SSO_URL, controller: this.controller })
+          .javaScriptAccess(true)
+          .domStorageAccess(true)
+          .fileAccess(false)
+          .mixedMode(MixedMode.All)
+          .backgroundColor(Color.White)
+          .width('100%')
+          .layoutWeight(1)
+      }
     }
     .width('100%')
     .height('100%')
