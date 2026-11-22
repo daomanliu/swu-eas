@@ -162,7 +162,7 @@
     },
     {
       "name": "card_material_bg",
-      "value": "#EBFFFFFF"
+      "value": "#FAFFFFFF"
     },
     {
       "name": "card_border",
@@ -170,11 +170,11 @@
     },
     {
       "name": "header_material_bg",
-      "value": "#F01E4E8C"
+      "value": "#FA1E4E8C"
     },
     {
       "name": "sheet_bg",
-      "value": "#F2FFFFFF"
+      "value": "#FCFFFFFF"
     }
   ]
 }
