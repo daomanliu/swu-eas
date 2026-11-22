@@ -16,6 +16,8 @@ export struct SyncPage {
   /** 关闭登录浮层 */
   onClose: () => void = () => {};
 
+  @StorageProp('topInset') topInset: number = 0;
+
   @State status: string = '登录完成后，点下方按钮同步';
   @State currentUrl: string = '';
   @State debugInfo: string = '';
@@ -291,8 +293,8 @@ export struct SyncPage {
         })
       }
       .width('100%')
-      .height(56)
-      .padding({ left: 16, right: 14 })
+      .height(this.topInset + 56)
+      .padding({ left: 16, right: 14, top: this.topInset })
       .backgroundColor('#1E4E8C')
 
       if (this.done) {

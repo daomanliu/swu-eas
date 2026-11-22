@@ -118,6 +118,24 @@ struct Index {
     return Index.BASE_LOC_FONT * Math.min(this.zoom, 1.25);
   }
 
+  onBackPress(): boolean {
+    if (this.showLogin) {
+      this.showLogin = false;
+      return true;
+    }
+    if (this.sheetShow || this.showSemester || this.showGradeTerm || this.showExamTerm
+      || this.showGradeDetail || this.showExamDetail) {
+      this.sheetShow = false;
+      this.showSemester = false;
+      this.showGradeTerm = false;
+      this.showExamTerm = false;
+      this.showGradeDetail = false;
+      this.showExamDetail = false;
+      return true;
+    }
+    return false;
+  }
+
   aboutToAppear(): void {
     try {
       if (uiMaterial.isImmersiveMaterialSupported()) {
@@ -530,7 +548,7 @@ struct Index {
 
   private timetableSubtitle(): string {
     if (this.courses.length === 0) {
-      return '未同步';
+      return '同步后显示';
     }
     return this.sourceLabel === ''
       ? `共 ${this.courses.length} 门课`
@@ -726,39 +744,17 @@ struct Index {
       .width('100%')
       .height('100%')
 
-      // 登录浮层：WebView 放在 TabContent 里会黑屏，放到根 Stack 上
-      if (this.showLogin) {
-        SyncPage({
-          onSynced: () => {
-            this.showLogin = false;
-            this.reload();
-          },
-          onCleared: () => {
-            this.courses = [];
-            this.loose = [];
-            this.semesters = [];
-            this.grades = [];
-            this.exams = [];
-            this.gradeTerm = '';
-            this.examTerm = '';
-            this.semesterKey = '';
-            this.semester = '';
-            this.sourceLabel = '';
-            this.lastSyncAt = '';
-            this.reload();
-          },
-          onClose: () => {
-            this.showLogin = false;
-          }
-        })
-          .width('100%')
-          .height('100%')
-      }
     }
     .width('100%')
     .height('100%')
     .backgroundColor('#F2F4F7')
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+    .bindContentCover(this.showLogin, this.loginCover(), {
+      modalTransition: ModalTransition.DEFAULT,
+      onDisappear: () => {
+        this.showLogin = false;
+      }
+    })
     .bindSheet(this.sheetShow, this.detailSheet(), {
       height: SheetSize.FIT_CONTENT,
       dragBar: true,
@@ -953,6 +949,33 @@ struct Index {
   }
 
   @Builder
+  loginCover() {
+    SyncPage({
+      onSynced: () => {
+        this.showLogin = false;
+        this.reload();
+      },
+      onCleared: () => {
+        this.courses = [];
+        this.loose = [];
+        this.semesters = [];
+        this.grades = [];
+        this.exams = [];
+        this.gradeTerm = '';
+        this.examTerm = '';
+        this.semesterKey = '';
+        this.semester = '';
+        this.sourceLabel = '';
+        this.lastSyncAt = '';
+        this.reload();
+      },
+      onClose: () => {
+        this.showLogin = false;
+      }
+    })
+  }
+
+  @Builder
   syncPage() {
     Column() {
       Row() {
@@ -972,7 +995,7 @@ struct Index {
         .borderRadius(14)
         .backgroundColor('#E6EEF9')
         .onClick(() => {
-          this.clearAllData();
+          this.confirmClear();
         })
       }
       .width('100%')
@@ -1004,7 +1027,7 @@ struct Index {
           .textAlign(TextAlign.Center)
           .margin({ top: 8 })
 
-        Text(this.lastSyncAt === '' ? '还没有同步过' : `上次同步：${this.lastSyncAt}`)
+        Text(this.syncLabel())
           .fontSize(10)
           .fontColor('#B0B8C4')
           .margin({ top: 10 })
@@ -1035,6 +1058,38 @@ struct Index {
     }
     .width('100%')
     .height('100%')
+  }
+
+  private syncLabel(): string {
+    if (this.lastSyncAt === '') {
+      return '还没有同步过';
+    }
+    const d = new Date(this.lastSyncAt);
+    if (isNaN(d.getTime())) {
+      return '已同步';
+    }
+    const pad = (n: number): string => n < 10 ? '0' + n.toString() : n.toString();
+    return `上次同步：${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  private confirmClear(): void {
+    this.getUIContext().showAlertDialog({
+      title: '清空本地数据',
+      message: '将删除本机缓存的课表、成绩、考试和登录状态，需要重新登录才能同步。确定清空？',
+      autoCancel: true,
+      primaryButton: {
+        value: '取消',
+        action: () => {
+        }
+      },
+      secondaryButton: {
+        value: '清空',
+        fontColor: '#C0392B',
+        action: () => {
+          this.clearAllData();
+        }
+      }
+    });
   }
 
   private async clearAllData(): Promise<void> {
