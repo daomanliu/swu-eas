@@ -932,7 +932,7 @@ struct Index {
   loginCover() {
     SyncPage({
       onSynced: () => {
-        this.closeLogin();
+        // 只刷新数据，浮层留在结果页，由"查看课表"关闭
         this.reload();
       },
       onCleared: () => {
