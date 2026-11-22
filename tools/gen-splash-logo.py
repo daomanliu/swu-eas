@@ -1,64 +1,82 @@
+# -*- coding: utf-8 -*-
+"""生成启动页 logo
 
+用法：
+  python gen-splash-logo.py                  # 只重建浅色（从 foreground.png 裁圆形徽标）
+  python gen-splash-logo.py <深色源图.png>    # 额外用它生成 deep 模式的 startIcon
+
+深色源图要求：正方形或近似正方形，纯黑背景会被抠成透明。
+"""
 import os
+import sys
+
 from PIL import Image
 
-root = r"D:\DeepSeek\eas"
-src = os.path.join(root, "entry", "src", "main", "resources", "base", "media", "foreground.png")
-im = Image.open(src).convert("RGBA").resize((512, 512), Image.LANCZOS)
-w, h = im.size
-px = im.load()
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RES = os.path.join(ROOT, "entry", "src", "main", "resources")
 
-def is_white(p):
-    r, g, b, a = p
-    return a > 10 and r > 235 and g > 235 and b > 235
 
-def is_ink(p):
-    r, g, b, a = p
-    return a > 10 and not is_white(p)
+def build_light():
+    src = os.path.join(RES, "base", "media", "foreground.png")
+    im = Image.open(src).convert("RGBA").resize((512, 512), Image.LANCZOS)
+    w, h = im.size
+    px = im.load()
 
-xs, ys = [], []
-for y in range(h):
-    for x in range(w):
-        if is_ink(px[x, y]):
-            xs.append(x); ys.append(y)
-cx = (min(xs) + max(xs)) / 2.0
-cy = (min(ys) + max(ys)) / 2.0
-rad = max(max(xs) - min(xs), max(ys) - min(ys)) / 2.0
+    def is_white(p):
+        r, g, b, a = p
+        return a > 10 and r > 235 and g > 235 and b > 235
 
-def build(paper, ink):
-    """paper=None 表示保留原白底；否则用指定纸色，ink 为蓝色重映射"""
+    xs, ys = [], []
+    for y in range(h):
+        for x in range(w):
+            if px[x, y][3] > 10 and not is_white(px[x, y]):
+                xs.append(x)
+                ys.append(y)
+    cx = (min(xs) + max(xs)) / 2.0
+    cy = (min(ys) + max(ys)) / 2.0
+    rad = max(max(xs) - min(xs), max(ys) - min(ys)) / 2.0
+
     out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     op = out.load()
     r2 = (rad * 1.005) ** 2
     for y in range(h):
         for x in range(w):
-            dx = x - cx; dy = y - cy
-            if dx * dx + dy * dy > r2:
+            if (x - cx) ** 2 + (y - cy) ** 2 > r2:
                 continue
-            p = px[x, y]
-            r, g, b, a = p
-            if b > 90 and r < 120:
-                c = ink if ink else (r, g, b)
-                op[x, y] = (c[0], c[1], c[2], a)
-            else:
-                if paper is None:
-                    op[x, y] = (r, g, b, a)
-                else:
-                    op[x, y] = (paper[0], paper[1], paper[2], a)
-    return out
+            op[x, y] = px[x, y]
+    out.save(os.path.join(RES, "base", "media", "startIcon.png"))
+    print("light -> base/media/startIcon.png")
 
-light = build(None, None)                       # 浅色：原样圆形徽标
-dark = build((226, 234, 246), (34, 84, 150))    # 深色：柔白圆底 + 略亮的蓝
 
-base_dir = os.path.join(root, "entry", "src", "main", "resources", "base", "media")
-dark_dir = os.path.join(root, "entry", "src", "main", "resources", "dark", "media")
-os.makedirs(dark_dir, exist_ok=True)
-light.save(os.path.join(base_dir, "startIcon.png"))
-dark.save(os.path.join(dark_dir, "startIcon.png"))
+def build_dark(src_path):
+    im = Image.open(src_path).convert("RGBA")
+    w, h = im.size
+    px = im.load()
+    out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    op = out.load()
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            m = max(r, g, b)
+            if m <= 12:
+                continue                      # 纯黑背景
+            alpha = 255 if m >= 36 else int((m - 12) / 24.0 * 255)
+            op[x, y] = (r, g, b, alpha)
 
-shots = os.path.join(root, "screenshot")
-for img, bg, name in [(light, (255,255,255,255), "p_light_big.png"), (dark, (15,17,20,255), "p_dark_big.png")]:
-    c = Image.new("RGBA", (w, h), bg)
-    c.alpha_composite(img)
-    c.resize((360, 360), Image.LANCZOS).save(os.path.join(shots, name))
-print("done r=", round(rad))
+    out = out.crop(out.getbbox())
+    cw, ch = out.size
+    side = max(cw, ch)
+    square = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    square.alpha_composite(out, ((side - cw) // 2, (side - ch) // 2))
+    final = square.resize((512, 512), Image.LANCZOS)
+
+    dark_dir = os.path.join(RES, "dark", "media")
+    os.makedirs(dark_dir, exist_ok=True)
+    final.save(os.path.join(dark_dir, "startIcon.png"))
+    print("dark  -> dark/media/startIcon.png")
+
+
+if __name__ == "__main__":
+    build_light()
+    if len(sys.argv) > 1:
+        build_dark(sys.argv[1])
