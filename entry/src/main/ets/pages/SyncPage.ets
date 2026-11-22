@@ -347,6 +347,14 @@ export struct SyncPage {
           .backgroundColor(Color.White)
           .width('100%')
           .layoutWeight(1)
+          // 返回键在 Web 上会被吞掉，这里先截住：关掉登录浮层而不是退出
+          .onKeyPreIme((event: KeyEvent) => {
+            if (event.type === KeyType.Down && event.keyCode === 2) {
+              this.onClose();
+              return true;
+            }
+            return false;
+          })
 
         Column() {
           Row() {

@@ -2,7 +2,7 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "西南大学课程表"
+      "value": "西南大学课表、成绩与考试查询"
     },
     {
       "name": "EntryAbility_desc",
@@ -10,7 +10,7 @@
     },
     {
       "name": "EntryAbility_label",
-      "value": "西大课表"
+      "value": "SWU教务"
     }
   ]
 }

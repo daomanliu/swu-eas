@@ -73,6 +73,7 @@ struct Index {
   @State selGrade: GradeRow | null = null;
   @State showGradeDetail: boolean = false;
   @State showLogin: boolean = false;
+  @StorageProp('backTick') @Watch('onBackTick') backTick: number = 0;
   @StorageProp('topInset') topInset: number = 0;
   @StorageProp('bottomInset') bottomInset: number = 0;
   @State selExam: ExamItem | null = null;
@@ -116,24 +117,6 @@ struct Index {
 
   private locFont(): number {
     return Index.BASE_LOC_FONT * Math.min(this.zoom, 1.25);
-  }
-
-  onBackPress(): boolean {
-    if (this.showLogin) {
-      this.showLogin = false;
-      return true;
-    }
-    if (this.sheetShow || this.showSemester || this.showGradeTerm || this.showExamTerm
-      || this.showGradeDetail || this.showExamDetail) {
-      this.sheetShow = false;
-      this.showSemester = false;
-      this.showGradeTerm = false;
-      this.showExamTerm = false;
-      this.showGradeDetail = false;
-      this.showExamDetail = false;
-      return true;
-    }
-    return false;
   }
 
   aboutToAppear(): void {
@@ -744,17 +727,14 @@ struct Index {
       .width('100%')
       .height('100%')
 
+      if (this.showLogin) {
+        this.loginCover()
+      }
     }
     .width('100%')
     .height('100%')
     .backgroundColor('#F2F4F7')
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-    .bindContentCover(this.showLogin, this.loginCover(), {
-      modalTransition: ModalTransition.DEFAULT,
-      onDisappear: () => {
-        this.showLogin = false;
-      }
-    })
     .bindSheet(this.sheetShow, this.detailSheet(), {
       height: SheetSize.FIT_CONTENT,
       dragBar: true,
@@ -952,7 +932,7 @@ struct Index {
   loginCover() {
     SyncPage({
       onSynced: () => {
-        this.showLogin = false;
+        this.closeLogin();
         this.reload();
       },
       onCleared: () => {
@@ -970,9 +950,54 @@ struct Index {
         this.reload();
       },
       onClose: () => {
-        this.showLogin = false;
+        this.closeLogin();
       }
     })
+  }
+
+  private openLogin(): void {
+    AppStorage.setOrCreate('overlayOpen', true);
+    this.showLogin = true;
+  }
+
+  private closeLogin(): void {
+    this.showLogin = false;
+    AppStorage.setOrCreate('overlayOpen', false);
+  }
+
+  onBackPress(): boolean {
+    if (this.showLogin) {
+      this.closeLogin();
+      return true;
+    }
+    if (this.sheetShow || this.showSemester || this.showGradeTerm || this.showExamTerm
+      || this.showGradeDetail || this.showExamDetail) {
+      this.sheetShow = false;
+      this.showSemester = false;
+      this.showGradeTerm = false;
+      this.showExamTerm = false;
+      this.showGradeDetail = false;
+      this.showExamDetail = false;
+      return true;
+    }
+    return false;
+  }
+
+  /** 系统返回键：先关浮层/弹层，再交给系统 */
+  onBackTick(): void {
+    if (this.showLogin) {
+      this.closeLogin();
+      return;
+    }
+    if (this.sheetShow || this.showSemester || this.showGradeTerm || this.showExamTerm
+      || this.showGradeDetail || this.showExamDetail) {
+      this.sheetShow = false;
+      this.showSemester = false;
+      this.showGradeTerm = false;
+      this.showExamTerm = false;
+      this.showGradeDetail = false;
+      this.showExamDetail = false;
+    }
   }
 
   @Builder
@@ -1043,7 +1068,7 @@ struct Index {
         .backgroundColor('#1E4E8C')
         .margin({ top: 20 })
         .onClick(() => {
-          this.showLogin = true;
+          this.openLogin();
         })
 
         Text('账号密码只在教务系统页面输入，App 不接触')
