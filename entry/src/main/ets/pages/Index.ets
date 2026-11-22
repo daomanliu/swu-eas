@@ -21,7 +21,7 @@ import {
 } from '../model/TimetableData';
 import { router, uiMaterial } from '@kit.ArkUI';
 import { webview } from '@kit.ArkWeb';
-import { HdsTabs, HdsTabsController, hdsMaterial } from '@kit.UIDesignKit';
+import { HdsTabs, HdsTabsController, hdsMaterial, hdsEffect } from '@kit.UIDesignKit';
 import { SyncPage } from './SyncPage';
 import { TimetableRepo, LoadResult, SemesterRef } from '../model/TimetableRepo';
 import { GradeItem, ExamItem } from '../model/JwSync';
@@ -81,6 +81,8 @@ struct Index {
 
   private material: uiMaterial.ImmersiveMaterial | undefined = undefined;
   private hdsController: HdsTabsController = new HdsTabsController();
+  /** 物理光效：点光源照亮卡片边缘 */
+  private cardLight: VisualEffect = new hdsEffect.HdsEffectBuilder().buildEffect();
   @State updatedAt: string = '';
   @State semesters: SemesterRef[] = [];
   @State semesterKey: string = '';
@@ -131,6 +133,22 @@ struct Index {
       }
     } catch (err) {
       this.materialOk = false;
+    }
+    try {
+      this.cardLight = new hdsEffect.HdsEffectBuilder()
+        .pointLight({
+          sourceType: hdsEffect.PointLightSourceType.SOFT,
+          illuminatedType: hdsEffect.PointLightIlluminatedType.DEFAULT_FEATHERING_BORDER,
+          options: {
+            color: $r('app.color.brand_text'),
+            intensity: 1,
+            height: 12,
+            bloom: 0.5
+          }
+        })
+        .buildEffect();
+    } catch (err) {
+      // 设备不支持时保持空效果
     }
     this.applyZoom(this.zoom);
     this.init();
@@ -1708,6 +1726,7 @@ struct Index {
     .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(12)
     .margin({ left: 12, right: 12, top: 10 })
+    .visualEffect(this.cardLight)
   }
 
   /** 三个页签共用的空态：图标卡片 + 标题 + 说明 + 同步按钮 + 隐私说明 */
