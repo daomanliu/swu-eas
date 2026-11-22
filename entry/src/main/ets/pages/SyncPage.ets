@@ -16,7 +16,7 @@ export struct SyncPage {
   /** 关闭登录浮层 */
   onClose: () => void = () => {};
 
-  @State status: string = '正在打开统一身份认证…';
+  @State status: string = '登录完成后，点下方按钮同步';
   @State currentUrl: string = '';
   @State debugInfo: string = '';
   @State busy: boolean = false;
@@ -36,16 +36,6 @@ export struct SyncPage {
 
   aboutToAppear(): void {
     this.persistCookies();
-    this.timerId = setInterval(() => {
-      this.tick();
-    }, 1500);
-  }
-
-  aboutToDisappear(): void {
-    if (this.timerId !== -1) {
-      clearInterval(this.timerId);
-      this.timerId = -1;
-    }
   }
 
   private persistCookies(): void {
@@ -95,6 +85,20 @@ export struct SyncPage {
     if (next !== '' && next !== this.status) {
       this.status = next;
     }
+  }
+
+  /** 用户点"开始同步"才抓取，不再轮询 */
+  private startSync(): void {
+    const cookie: string = JwSync.cookie();
+    if (!JwSync.isLoggedIn(cookie)) {
+      this.status = '还没检测到登录状态，请先完成登录再点';
+      return;
+    }
+    this.failedCookie = '';
+    this.started = true;
+    this.busy = true;
+    this.status = '正在抓取课表、成绩和考试…';
+    this.runSync(cookie);
   }
 
   private async clearAll(): Promise<void> {
@@ -291,56 +295,6 @@ export struct SyncPage {
       .padding({ left: 16, right: 14 })
       .backgroundColor('#1E4E8C')
 
-      Row() {
-        if (this.busy) {
-          LoadingProgress().width(14).height(14).color('#1E4E8C').margin({ right: 6 })
-        }
-        Text(this.status)
-          .fontSize(11)
-          .fontColor(this.done ? '#19A461' : '#6B7686')
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-          .layoutWeight(1)
-      }
-      .width('100%')
-      .height(30)
-      .padding({ left: 14, right: 14 })
-      .backgroundColor('#F7F9FC')
-      .visibility(this.done ? Visibility.None : Visibility.Visible)
-
-      Row() {
-        Column() {
-          Text(this.currentUrl)
-            .fontSize(9)
-            .fontColor('#A0A8B4')
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-            .width('100%')
-
-        }
-        .alignItems(HorizontalAlign.Start)
-        .layoutWeight(1)
-        Text('直接打开教务')
-          .fontSize(10)
-          .fontColor('#1E4E8C')
-          .padding({ left: 8, right: 8, top: 3, bottom: 3 })
-          .borderRadius(8)
-          .backgroundColor('#E6EEF9')
-          .margin({ left: 8 })
-          .onClick(() => {
-            try {
-              this.controller.loadUrl(JW_KBCX);
-            } catch (err) {
-              this.status = '打开教务失败';
-            }
-          })
-      }
-      .width('100%')
-      .height(30)
-      .padding({ left: 14, right: 14 })
-      .backgroundColor('#F7F9FC')
-      .visibility(this.done ? Visibility.None : Visibility.Visible)
-
       if (this.done) {
         Column() {
           SymbolGlyph($r('sys.symbol.checkmark_circle_fill'))
@@ -391,6 +345,43 @@ export struct SyncPage {
           .backgroundColor(Color.White)
           .width('100%')
           .layoutWeight(1)
+
+        Column() {
+          Row() {
+            if (this.busy) {
+              LoadingProgress().width(12).height(12).color('#1E4E8C').margin({ right: 6 })
+            }
+            Text(this.status)
+              .fontSize(11)
+              .fontColor('#6B7686')
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+              .layoutWeight(1)
+          }
+          .width('100%')
+          .height(22)
+
+          Row() {
+            Text(this.busy ? '正在同步…' : '开始同步')
+              .fontSize(14)
+              .fontWeight(FontWeight.Medium)
+              .fontColor('#FFFFFF')
+          }
+          .width('100%')
+          .height(44)
+          .justifyContent(FlexAlign.Center)
+          .borderRadius(22)
+          .backgroundColor(this.busy ? '#9BB4D8' : '#1E4E8C')
+          .margin({ top: 6 })
+          .onClick(() => {
+            if (!this.busy) {
+              this.startSync();
+            }
+          })
+        }
+        .width('100%')
+        .padding({ left: 14, right: 14, top: 8, bottom: 14 })
+        .backgroundColor('#FFFFFF')
       }
     }
     .width('100%')
