@@ -707,6 +707,8 @@ struct Index {
       }
       .barOverlap(true)
       .barPosition(BarPosition.End)
+      .barBackgroundColor(Color.Transparent)
+      .barBackgroundBlurStyle(BlurStyle.NONE)
       .barFloatingStyle({
         barSideMargin: 16,
         barBottomMargin: 12,
