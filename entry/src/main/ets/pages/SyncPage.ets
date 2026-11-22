@@ -60,9 +60,11 @@ export struct SyncPage {
       return;
     }
     try {
-      const url: string = this.controller.getUrl();
-      if (url !== '') {
-        this.currentUrl = url.length > 70 ? url.slice(0, 70) + '…' : url;
+      const raw: string = this.controller.getUrl();
+      const url: string = raw.length > 70 ? raw.slice(0, 70) + '…' : raw;
+      // 只有真的变了才赋值，避免每 1.5 秒触发一次重绘（登录时页面会闪）
+      if (url !== '' && url !== this.currentUrl) {
+        this.currentUrl = url;
       }
     } catch (err) {
       // 控制器未就绪
@@ -70,21 +72,22 @@ export struct SyncPage {
 
     const cookie: string = JwSync.cookie();
     const ok: boolean = JwSync.isLoggedIn(cookie);
-    this.debugInfo = cookie === ''
-      ? 'cookie: 无'
-      : `cookie: ${cookie.length} 字符${ok ? ' · 有 JSESSIONID' : ' · 无 JSESSIONID'}`;
     if (ok) {
       this.started = true;
-      this.status = '已登录，正在抓取各学期课表…';
+      this.status = '已登录，正在抓取课表、成绩和考试…';
       this.persistCookies();
       this.runSync(cookie);
       return;
     }
 
+    let next: string = '';
     if (this.currentUrl.indexOf('uaaap.swu.edu.cn') >= 0 || this.currentUrl.indexOf('idm.swu.edu.cn') >= 0) {
-      this.status = '请在下方完成登录，登录后会自动抓取';
+      next = '请在下方完成登录，登录后会自动抓取';
     } else if (this.currentUrl.indexOf('jw.swu.edu.cn') >= 0) {
-      this.status = '正在进入教务系统…';
+      next = '正在进入教务系统…';
+    }
+    if (next !== '' && next !== this.status) {
+      this.status = next;
     }
   }
 
@@ -285,10 +288,13 @@ export struct SyncPage {
         Text(this.status)
           .fontSize(11)
           .fontColor(this.done ? '#19A461' : '#6B7686')
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
           .layoutWeight(1)
       }
       .width('100%')
-      .padding({ left: 14, right: 14, top: 8, bottom: 4 })
+      .height(30)
+      .padding({ left: 14, right: 14 })
       .backgroundColor('#F7F9FC')
       .visibility(this.done ? Visibility.None : Visibility.Visible)
 
@@ -320,7 +326,8 @@ export struct SyncPage {
           })
       }
       .width('100%')
-      .padding({ left: 14, right: 14, bottom: 8 })
+      .height(30)
+      .padding({ left: 14, right: 14 })
       .backgroundColor('#F7F9FC')
       .visibility(this.done ? Visibility.None : Visibility.Visible)
 
