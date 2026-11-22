@@ -276,18 +276,18 @@ export struct SyncPage {
         Text('登录教务系统')
           .fontSize(19)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#FFFFFF')
+          .fontColor($r('app.color.on_brand'))
           .layoutWeight(1)
 
         Row() {
           Text('关闭')
             .fontSize(12)
-            .fontColor('#1E4E8C')
+            .fontColor($r('app.color.brand_text'))
         }
         .height(28)
         .padding({ left: 12, right: 12 })
         .borderRadius(14)
-        .backgroundColor('#E6EEF9')
+        .backgroundColor($r('app.color.chip_bg_light'))
         .onClick(() => {
           this.onClose();
         })
@@ -295,21 +295,21 @@ export struct SyncPage {
       .width('100%')
       .height(this.topInset + 56)
       .padding({ left: 16, right: 14, top: this.topInset })
-      .backgroundColor('#1E4E8C')
+      .backgroundColor($r('app.color.brand_bg'))
 
       if (this.done) {
         Column() {
           SymbolGlyph($r('sys.symbol.checkmark_circle_fill'))
             .fontSize(46)
-            .fontColor(['#19A461'])
+            .fontColor([$r('app.color.success')])
           Text('同步完成')
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#26313F')
+            .fontColor($r('app.color.text_primary'))
             .margin({ top: 14 })
           Text(this.status)
             .fontSize(12)
-            .fontColor('#6B7686')
+            .fontColor($r('app.color.text_tertiary'))
             .margin({ top: 8 })
             .textAlign(TextAlign.Center)
 
@@ -317,11 +317,11 @@ export struct SyncPage {
             Text('查看课表')
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#FFFFFF')
+              .fontColor($r('app.color.on_brand'))
           }
           .padding({ left: 34, right: 34, top: 11, bottom: 11 })
           .borderRadius(22)
-          .backgroundColor('#1E4E8C')
+          .backgroundColor($r('app.color.brand_bg'))
           .margin({ top: 22 })
           .onClick(() => {
             this.onDone();
@@ -330,11 +330,11 @@ export struct SyncPage {
           Row() {
             Text('重新同步')
               .fontSize(14)
-              .fontColor('#1E4E8C')
+              .fontColor($r('app.color.brand_text'))
           }
           .padding({ left: 22, right: 22, top: 9, bottom: 9 })
           .borderRadius(18)
-          .backgroundColor('#E6EEF9')
+          .backgroundColor($r('app.color.chip_bg_light'))
           .margin({ top: 10 })
           .onClick(() => {
             this.done = false;
@@ -351,7 +351,7 @@ export struct SyncPage {
         .layoutWeight(1)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .backgroundColor('#F2F4F7')
+        .backgroundColor($r('app.color.page_bg'))
       } else {
         Web({ src: SSO_URL, controller: this.controller })
           .javaScriptAccess(true)
@@ -373,11 +373,11 @@ export struct SyncPage {
         Column() {
           Row() {
             if (this.busy) {
-              LoadingProgress().width(12).height(12).color('#1E4E8C').margin({ right: 6 })
+              LoadingProgress().width(12).height(12).color($r('app.color.brand_text')).margin({ right: 6 })
             }
             Text(this.status)
               .fontSize(11)
-              .fontColor('#6B7686')
+              .fontColor($r('app.color.text_tertiary'))
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
               .layoutWeight(1)
@@ -389,13 +389,13 @@ export struct SyncPage {
             Text(this.busy ? '正在同步…' : '开始同步')
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#FFFFFF')
+              .fontColor($r('app.color.on_brand'))
           }
           .width('100%')
           .height(44)
           .justifyContent(FlexAlign.Center)
           .borderRadius(22)
-          .backgroundColor(this.busy ? '#9BB4D8' : '#1E4E8C')
+          .backgroundColor(this.busy ? $r('app.color.btn_disabled') : $r('app.color.brand_text'))
           .margin({ top: 6 })
           .onClick(() => {
             if (!this.busy) {
@@ -405,11 +405,11 @@ export struct SyncPage {
         }
         .width('100%')
         .padding({ left: 14, right: 14, top: 8, bottom: 14 })
-        .backgroundColor('#FFFFFF')
+        .backgroundColor($r('app.color.surface'))
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F2F4F7')
+    .backgroundColor($r('app.color.page_bg'))
   }
 }

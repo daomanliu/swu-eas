@@ -372,14 +372,14 @@ struct Index {
     return '本周';
   }
 
-  private nowColor(): string {
+  private nowColor(): ResourceColor {
     if (this.nowItem.kind === 'now') {
-      return '#19A461';
+      return $r('app.color.success');
     }
     if (this.nowItem.kind === 'next') {
-      return '#1E4E8C';
+      return $r('app.color.brand_text');
     }
-    return '#8A94A6';
+    return $r('app.color.text_hint');
   }
 
   private nowTitle(): string {
@@ -546,18 +546,18 @@ struct Index {
     return `${src.length} 场 · ${src[0].time === '' ? '时间待定' : src[0].time.slice(0, 10)}`;
   }
 
-  private scoreColor(score: string): string {
+  private scoreColor(score: string): ResourceColor {
     const s: number = Number(score);
     if (isNaN(s)) {
-      return '#26313F';
+      return $r('app.color.text_primary');
     }
     if (s >= 90) {
-      return '#19A461';
+      return $r('app.color.success');
     }
     if (s >= 60) {
-      return '#26313F';
+      return $r('app.color.text_primary');
     }
-    return '#C0392B';
+    return $r('app.color.danger');
   }
 
   /** "2027-01-06(19:00-21:00)" -> "1/6" */
@@ -581,7 +581,7 @@ struct Index {
       Text('选择学期')
         .fontSize(15)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#16233A')
+        .fontColor($r('app.color.text_strong'))
         .margin({ bottom: 6 })
 
       List() {
@@ -590,15 +590,15 @@ struct Index {
             Row() {
               Text(t === '' ? '全部学期' : t)
                 .fontSize(14)
-                .fontColor('#3A4657')
+                .fontColor($r('app.color.text_secondary'))
                 .layoutWeight(1)
               if (t === (isGrade ? this.gradeTerm : this.examTerm)) {
                 Text('当前')
                   .fontSize(10)
-                  .fontColor('#FFFFFF')
+                  .fontColor($r('app.color.on_brand'))
                   .padding({ left: 6, right: 6, top: 2, bottom: 2 })
                   .borderRadius(8)
-                  .backgroundColor('#1E4E8C')
+                  .backgroundColor($r('app.color.brand_bg'))
               }
             }
             .width('100%')
@@ -733,13 +733,13 @@ struct Index {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F2F4F7')
+    .backgroundColor($r('app.color.page_bg'))
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     .bindSheet(this.sheetShow, this.detailSheet(), {
       height: SheetSize.FIT_CONTENT,
       dragBar: true,
       showClose: false,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: $r('app.color.surface'),
       onDisappear: () => {
         this.sheetShow = false;
         this.selected = null;
@@ -754,8 +754,8 @@ struct Index {
 
       if (this.loading) {
         Column() {
-          LoadingProgress().width(30).height(30).color('#1E4E8C')
-          Text('正在加载课表…').fontSize(12).fontColor('#8A94A6').margin({ top: 8 })
+          LoadingProgress().width(30).height(30).color($r('app.color.brand_text'))
+          Text('正在加载课表…').fontSize(12).fontColor($r('app.color.text_hint')).margin({ top: 8 })
         }
         .width('100%')
         .layoutWeight(1)
@@ -799,10 +799,10 @@ struct Index {
           Text('成绩')
             .fontSize(19)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#FFFFFF')
+            .fontColor($r('app.color.on_brand'))
           Text(this.gradeSummary())
             .fontSize(11)
-            .fontColor('#BFD2EA')
+            .fontColor($r('app.color.on_brand_sub'))
             .margin({ top: 2 })
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -813,18 +813,18 @@ struct Index {
         Row() {
           Text(this.gradeTerm === '' ? '全部学期' : this.gradeTerm)
             .fontSize(10)
-            .fontColor('#CFE0F5')
+            .fontColor($r('app.color.on_brand_chip_text'))
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
           SymbolGlyph($r('sys.symbol.chevron_down'))
             .fontSize(9)
-            .fontColor(['#CFE0F5'])
+            .fontColor([$r('app.color.on_brand_chip_text')])
             .margin({ left: 3 })
         }
         .constraintSize({ maxWidth: 150 })
         .padding({ left: 10, right: 8, top: 6, bottom: 6 })
         .borderRadius(13)
-        .backgroundColor('#2F63A8')
+        .backgroundColor($r('app.color.on_brand_chip'))
         .margin({ right: 8 })
         .onClick(() => {
           this.showGradeTerm = true;
@@ -832,12 +832,12 @@ struct Index {
       }
       .width('100%')
       .padding({ left: 16, right: 14, top: this.topInset + 14, bottom: 12 })
-      .backgroundColor('#1E4E8C')
+      .backgroundColor($r('app.color.brand_bg'))
       .bindSheet(this.showGradeTerm, this.termSheet(true), {
         height: SheetSize.FIT_CONTENT,
         dragBar: true,
         showClose: false,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: $r('app.color.surface'),
         onDisappear: () => {
           this.showGradeTerm = false;
         }
@@ -854,11 +854,11 @@ struct Index {
                   Text(r.term)
                     .fontSize(12)
                     .fontWeight(FontWeight.Bold)
-                    .fontColor('#3A4657')
+                    .fontColor($r('app.color.text_secondary'))
                   Blank()
                   Text(r.summary)
                     .fontSize(10)
-                    .fontColor('#8A94A6')
+                    .fontColor($r('app.color.text_hint'))
                 }
                 .width('100%')
                 .padding({ left: 16, right: 16, top: 14, bottom: 6 })
@@ -880,7 +880,7 @@ struct Index {
       height: SheetSize.FIT_CONTENT,
       dragBar: true,
       showClose: false,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: $r('app.color.surface'),
       onDisappear: () => {
         this.showGradeDetail = false;
         this.selGrade = null;
@@ -894,12 +894,12 @@ struct Index {
       Column() {
         Text(r.name)
           .fontSize(14)
-          .fontColor('#26313F')
+          .fontColor($r('app.color.text_primary'))
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
         Text(`${r.credit} 学分 · ${r.nature}`)
           .fontSize(10)
-          .fontColor('#9AA4B2')
+          .fontColor($r('app.color.text_faint'))
           .margin({ top: 3 })
       }
       .alignItems(HorizontalAlign.Start)
@@ -912,14 +912,14 @@ struct Index {
           .fontColor(this.scoreColor(r.score))
         Text(`绩点 ${r.gpa}`)
           .fontSize(9)
-          .fontColor('#9AA4B2')
+          .fontColor($r('app.color.text_faint'))
           .margin({ top: 2 })
       }
       .alignItems(HorizontalAlign.End)
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 11, bottom: 11 })
-    .backgroundColor('#FFFFFF')
+    .backgroundColor($r('app.color.surface'))
     .borderRadius(10)
     .margin({ bottom: 8 })
     .onClick(() => {
@@ -1013,18 +1013,18 @@ struct Index {
         Text('同步')
           .fontSize(19)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#FFFFFF')
+          .fontColor($r('app.color.on_brand'))
           .layoutWeight(1)
 
         Row() {
           Text('清空数据')
             .fontSize(12)
-            .fontColor('#1E4E8C')
+            .fontColor($r('app.color.brand_text'))
         }
         .height(28)
         .padding({ left: 12, right: 12 })
         .borderRadius(14)
-        .backgroundColor('#E6EEF9')
+        .backgroundColor($r('app.color.chip_bg_light'))
         .onClick(() => {
           this.confirmClear();
         })
@@ -1032,46 +1032,46 @@ struct Index {
       .width('100%')
       .height(this.topInset + 56)
       .padding({ left: 16, right: 14, top: this.topInset })
-      .backgroundColor('#1E4E8C')
+      .backgroundColor($r('app.color.brand_bg'))
 
       Column() {
         Column() {
           SymbolGlyph($r('sys.symbol.arrow_clockwise'))
             .fontSize(38)
-            .fontColor(['#1E4E8C'])
+            .fontColor([$r('app.color.brand_text')])
         }
         .width(76)
         .height(76)
         .justifyContent(FlexAlign.Center)
         .borderRadius(20)
-        .backgroundColor('#EAF0F8')
+        .backgroundColor($r('app.color.icon_card_bg'))
 
         Text('登录一次，全部同步')
           .fontSize(17)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#26313F')
+          .fontColor($r('app.color.text_primary'))
           .margin({ top: 18 })
 
         Text('课表、成绩、考试一次抓取，数据只保存在本机')
           .fontSize(11)
-          .fontColor('#8A94A6')
+          .fontColor($r('app.color.text_hint'))
           .textAlign(TextAlign.Center)
           .margin({ top: 8 })
 
         Text(this.syncLabel())
           .fontSize(10)
-          .fontColor('#B0B8C4')
+          .fontColor($r('app.color.text_faint2'))
           .margin({ top: 10 })
 
         Row() {
           Text('登录教务系统并同步')
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
-            .fontColor('#FFFFFF')
+            .fontColor($r('app.color.on_brand'))
         }
         .padding({ left: 26, right: 26, top: 11, bottom: 11 })
         .borderRadius(22)
-        .backgroundColor('#1E4E8C')
+        .backgroundColor($r('app.color.brand_bg'))
         .margin({ top: 20 })
         .onClick(() => {
           this.openLogin();
@@ -1079,7 +1079,7 @@ struct Index {
 
         Text('账号密码只在教务系统页面输入，App 不接触')
           .fontSize(9)
-          .fontColor('#B0B8C4')
+          .fontColor($r('app.color.text_faint2'))
           .margin({ top: 14 })
       }
       .width('100%')
@@ -1115,7 +1115,7 @@ struct Index {
       },
       secondaryButton: {
         value: '清空',
-        fontColor: '#C0392B',
+        fontColor: $r('app.color.danger'),
         action: () => {
           this.clearAllData();
         }
@@ -1153,13 +1153,13 @@ struct Index {
         Text((this.selGrade as GradeRow).name)
           .fontSize(17)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#16233A')
+          .fontColor($r('app.color.text_strong'))
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Text((this.selGrade as GradeRow).term)
           .fontSize(11)
-          .fontColor('#8A94A6')
+          .fontColor($r('app.color.text_hint'))
           .margin({ top: 6 })
 
         Row() {
@@ -1169,16 +1169,16 @@ struct Index {
             .fontColor(this.scoreColor((this.selGrade as GradeRow).score))
           Text('分')
             .fontSize(12)
-            .fontColor('#8A94A6')
+            .fontColor($r('app.color.text_hint'))
             .margin({ left: 4, bottom: 6 })
           Blank()
           Column() {
             Text(`绩点 ${(this.selGrade as GradeRow).gpa}`)
               .fontSize(13)
-              .fontColor('#3A4657')
+              .fontColor($r('app.color.text_secondary'))
             Text(`${(this.selGrade as GradeRow).credit} 学分`)
               .fontSize(11)
-              .fontColor('#8A94A6')
+              .fontColor($r('app.color.text_hint'))
               .margin({ top: 3 })
           }
           .alignItems(HorizontalAlign.End)
@@ -1186,29 +1186,29 @@ struct Index {
         .width('100%')
         .margin({ top: 10 })
 
-        Divider().color('#EEF1F5').margin({ top: 12, bottom: 10 })
+        Divider().color($r('app.color.divider')).margin({ top: 12, bottom: 10 })
 
         Row() {
-          Text('课程性质').fontSize(12).fontColor('#8A94A6').width(72)
+          Text('课程性质').fontSize(12).fontColor($r('app.color.text_hint')).width(72)
           Text((this.selGrade as GradeRow).nature)
-            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+            .fontSize(13).fontColor($r('app.color.text_secondary')).layoutWeight(1)
         }.width('100%')
 
         Row() {
-          Text('任课教师').fontSize(12).fontColor('#8A94A6').width(72)
+          Text('任课教师').fontSize(12).fontColor($r('app.color.text_hint')).width(72)
           Text((this.selGrade as GradeRow).teacher)
-            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+            .fontSize(13).fontColor($r('app.color.text_secondary')).layoutWeight(1)
         }.width('100%').margin({ top: 8 })
 
         Row() {
-          Text('考核方式').fontSize(12).fontColor('#8A94A6').width(72)
+          Text('考核方式').fontSize(12).fontColor($r('app.color.text_hint')).width(72)
           Text((this.selGrade as GradeRow).examType)
-            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+            .fontSize(13).fontColor($r('app.color.text_secondary')).layoutWeight(1)
         }.width('100%').margin({ top: 8 })
 
         Text('平时/期末等分项成绩需在教务「成绩明细查询」查看')
           .fontSize(9)
-          .fontColor('#B0B8C4')
+          .fontColor($r('app.color.text_faint2'))
           .margin({ top: 14 })
       }
     }
@@ -1224,13 +1224,13 @@ struct Index {
         Text((this.selExam as ExamItem).name)
           .fontSize(17)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#16233A')
+          .fontColor($r('app.color.text_strong'))
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Text((this.selExam as ExamItem).examName)
           .fontSize(11)
-          .fontColor('#8A94A6')
+          .fontColor($r('app.color.text_hint'))
           .margin({ top: 6 })
 
         Row() {
@@ -1238,10 +1238,10 @@ struct Index {
             Text(this.examDate((this.selExam as ExamItem).time))
               .fontSize(28)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#1E4E8C')
+              .fontColor($r('app.color.brand_text'))
             Text('考试日期')
               .fontSize(9)
-              .fontColor('#9AA4B2')
+              .fontColor($r('app.color.text_faint'))
               .margin({ top: 2 })
           }
           .alignItems(HorizontalAlign.Start)
@@ -1252,10 +1252,10 @@ struct Index {
             Text(this.examTime((this.selExam as ExamItem).time))
               .fontSize(18)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#26313F')
+              .fontColor($r('app.color.text_primary'))
             Text('考试时段')
               .fontSize(9)
-              .fontColor('#9AA4B2')
+              .fontColor($r('app.color.text_faint'))
               .margin({ top: 2 })
           }
           .alignItems(HorizontalAlign.End)
@@ -1263,29 +1263,29 @@ struct Index {
         .width('100%')
         .margin({ top: 12 })
 
-        Divider().color('#EEF1F5').margin({ top: 14, bottom: 10 })
+        Divider().color($r('app.color.divider')).margin({ top: 14, bottom: 10 })
 
         Row() {
-          Text('考场').fontSize(12).fontColor('#8A94A6').width(72)
+          Text('考场').fontSize(12).fontColor($r('app.color.text_hint')).width(72)
           Text((this.selExam as ExamItem).place)
-            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+            .fontSize(13).fontColor($r('app.color.text_secondary')).layoutWeight(1)
         }.width('100%')
 
         Row() {
-          Text('教师').fontSize(12).fontColor('#8A94A6').width(72)
+          Text('教师').fontSize(12).fontColor($r('app.color.text_hint')).width(72)
           Text((this.selExam as ExamItem).teacher)
-            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+            .fontSize(13).fontColor($r('app.color.text_secondary')).layoutWeight(1)
         }.width('100%').margin({ top: 8 })
 
         Row() {
-          Text('学期').fontSize(12).fontColor('#8A94A6').width(72)
+          Text('学期').fontSize(12).fontColor($r('app.color.text_hint')).width(72)
           Text((this.selExam as ExamItem).term)
-            .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+            .fontSize(13).fontColor($r('app.color.text_secondary')).layoutWeight(1)
         }.width('100%').margin({ top: 8 })
 
         Text('具体座位号请以教务系统公布的考场安排为准')
           .fontSize(9)
-          .fontColor('#B0B8C4')
+          .fontColor($r('app.color.text_faint2'))
           .margin({ top: 14 })
       }
     }
@@ -1302,10 +1302,10 @@ struct Index {
           Text('考试')
             .fontSize(19)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#FFFFFF')
+            .fontColor($r('app.color.on_brand'))
           Text(this.examSummary())
             .fontSize(11)
-            .fontColor('#BFD2EA')
+            .fontColor($r('app.color.on_brand_sub'))
             .margin({ top: 2 })
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -1316,18 +1316,18 @@ struct Index {
         Row() {
           Text(this.examTerm === '' ? '全部学期' : this.examTerm)
             .fontSize(10)
-            .fontColor('#CFE0F5')
+            .fontColor($r('app.color.on_brand_chip_text'))
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
           SymbolGlyph($r('sys.symbol.chevron_down'))
             .fontSize(9)
-            .fontColor(['#CFE0F5'])
+            .fontColor([$r('app.color.on_brand_chip_text')])
             .margin({ left: 3 })
         }
         .constraintSize({ maxWidth: 150 })
         .padding({ left: 10, right: 8, top: 6, bottom: 6 })
         .borderRadius(13)
-        .backgroundColor('#2F63A8')
+        .backgroundColor($r('app.color.on_brand_chip'))
         .margin({ right: 8 })
         .onClick(() => {
           this.showExamTerm = true;
@@ -1335,12 +1335,12 @@ struct Index {
       }
       .width('100%')
       .padding({ left: 16, right: 14, top: this.topInset + 14, bottom: 12 })
-      .backgroundColor('#1E4E8C')
+      .backgroundColor($r('app.color.brand_bg'))
       .bindSheet(this.showExamTerm, this.termSheet(false), {
         height: SheetSize.FIT_CONTENT,
         dragBar: true,
         showClose: false,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: $r('app.color.surface'),
         onDisappear: () => {
           this.showExamTerm = false;
         }
@@ -1368,7 +1368,7 @@ struct Index {
       height: SheetSize.FIT_CONTENT,
       dragBar: true,
       showClose: false,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: $r('app.color.surface'),
       onDisappear: () => {
         this.showExamDetail = false;
         this.selExam = null;
@@ -1383,29 +1383,29 @@ struct Index {
         Text(it.name)
           .fontSize(14)
           .fontWeight(FontWeight.Medium)
-          .fontColor('#26313F')
+          .fontColor($r('app.color.text_primary'))
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .layoutWeight(1)
         Text(this.examDate(it.time))
           .fontSize(12)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#1E4E8C')
+          .fontColor($r('app.color.brand_text'))
       }
       .width('100%')
 
       Row() {
         SymbolGlyph($r('sys.symbol.clock'))
           .fontSize(10)
-          .fontColor(['#9AA4B2'])
+          .fontColor([$r('app.color.text_faint')])
           .margin({ right: 3 })
         Text(this.examTime(it.time))
           .fontSize(11)
-          .fontColor('#6B7686')
+          .fontColor($r('app.color.text_tertiary'))
         Blank()
         Text(it.place)
           .fontSize(11)
-          .fontColor('#6B7686')
+          .fontColor($r('app.color.text_tertiary'))
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
       }
@@ -1414,13 +1414,13 @@ struct Index {
 
       Text(it.examName)
         .fontSize(9)
-        .fontColor('#B0B8C4')
+        .fontColor($r('app.color.text_faint2'))
         .margin({ top: 4 })
     }
     .width('100%')
     .alignItems(HorizontalAlign.Start)
     .padding(12)
-    .backgroundColor('#FFFFFF')
+    .backgroundColor($r('app.color.surface'))
     .borderRadius(10)
     .margin({ bottom: 8 })
     .onClick(() => {
@@ -1435,11 +1435,11 @@ struct Index {
     Column({ space: 2 }) {
       SymbolGlyph(this.tab === idx ? iconSelected : iconNormal)
         .fontSize(21)
-        .fontColor(this.tab === idx ? ['#1E4E8C'] : ['#8A94A6'])
+        .fontColor(this.tab === idx ? [$r('app.color.brand_text')] : [$r('app.color.text_hint')])
       Text(label)
         .fontSize(10)
         .fontWeight(this.tab === idx ? FontWeight.Medium : FontWeight.Normal)
-        .fontColor(this.tab === idx ? '#1E4E8C' : '#8A94A6')
+        .fontColor(this.tab === idx ? $r('app.color.brand_text') : $r('app.color.text_hint'))
     }
     .width('100%')
     .height('100%')
@@ -1457,10 +1457,10 @@ struct Index {
           Text('课程表')
             .fontSize(19)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#FFFFFF')
+            .fontColor($r('app.color.on_brand'))
           Text(this.timetableSubtitle())
             .fontSize(11)
-            .fontColor('#BFD2EA')
+            .fontColor($r('app.color.on_brand_sub'))
             .margin({ top: 2 })
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -1471,18 +1471,18 @@ struct Index {
         Row() {
           Text(this.semester === '' ? '选择学期' : this.semester)
             .fontSize(10)
-            .fontColor('#CFE0F5')
+            .fontColor($r('app.color.on_brand_chip_text'))
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
           SymbolGlyph($r('sys.symbol.chevron_down'))
             .fontSize(9)
-            .fontColor(['#CFE0F5'])
+            .fontColor([$r('app.color.on_brand_chip_text')])
             .margin({ left: 3 })
         }
         .constraintSize({ maxWidth: 150 })
         .padding({ left: 10, right: 8, top: 6, bottom: 6 })
         .borderRadius(13)
-        .backgroundColor('#2F63A8')
+        .backgroundColor($r('app.color.on_brand_chip'))
         .onClick(() => {
           this.showSemester = true;
         })
@@ -1494,13 +1494,13 @@ struct Index {
         Row() {
           SymbolGlyph($r('sys.symbol.chevron_left'))
             .fontSize(13)
-            .fontColor(['#CFE0F5'])
+            .fontColor([$r('app.color.on_brand_chip_text')])
         }
         .width(26)
         .height(26)
         .justifyContent(FlexAlign.Center)
         .borderRadius(13)
-        .backgroundColor('#2F63A8')
+        .backgroundColor($r('app.color.on_brand_chip'))
         .onClick(() => {
           this.step(-1);
         })
@@ -1508,10 +1508,10 @@ struct Index {
         Column() {
           Text(`第 ${this.week} 周`)
             .fontSize(12)
-            .fontColor('#FFFFFF')
+            .fontColor($r('app.color.on_brand'))
           Text(this.weekRange())
             .fontSize(9)
-            .fontColor('#9FBEE3')
+            .fontColor($r('app.color.on_brand_sub2'))
             .margin({ top: 1 })
         }
         .layoutWeight(1)
@@ -1520,13 +1520,13 @@ struct Index {
         Row() {
           SymbolGlyph($r('sys.symbol.chevron_right'))
             .fontSize(13)
-            .fontColor(['#CFE0F5'])
+            .fontColor([$r('app.color.on_brand_chip_text')])
         }
         .width(26)
         .height(26)
         .justifyContent(FlexAlign.Center)
         .borderRadius(13)
-        .backgroundColor('#2F63A8')
+        .backgroundColor($r('app.color.on_brand_chip'))
         .onClick(() => {
           this.step(1);
         })
@@ -1534,15 +1534,15 @@ struct Index {
         Row() {
           SymbolGlyph($r('sys.symbol.calendar'))
             .fontSize(10)
-            .fontColor(['#CFE0F5'])
+            .fontColor([$r('app.color.on_brand_chip_text')])
             .margin({ right: 3 })
           Text(this.semesterKey === this.currentSemesterKey() ? '本周' : '第 1 周')
             .fontSize(10)
-            .fontColor('#CFE0F5')
+            .fontColor($r('app.color.on_brand_chip_text'))
         }
         .padding({ left: 8, right: 9, top: 4, bottom: 4 })
         .borderRadius(12)
-        .backgroundColor('#2F63A8')
+        .backgroundColor($r('app.color.on_brand_chip'))
         .margin({ left: 8 })
         .onClick(() => {
           this.week = this.currentWeek();
@@ -1556,12 +1556,12 @@ struct Index {
     }
     .width('100%')
     .padding({ top: this.topInset })
-    .backgroundColor('#1E4E8C')
+    .backgroundColor($r('app.color.brand_bg'))
     .bindSheet(this.showSemester, this.semesterSheet(), {
       height: SheetSize.FIT_CONTENT,
       dragBar: true,
       showClose: false,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: $r('app.color.surface'),
       onDisappear: () => {
         this.showSemester = false;
       }
@@ -1574,7 +1574,7 @@ struct Index {
       Text('切换学期')
         .fontSize(15)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#16233A')
+        .fontColor($r('app.color.text_strong'))
         .margin({ bottom: 6 })
 
       List() {
@@ -1585,10 +1585,10 @@ struct Index {
                 Text(s.label)
                   .fontSize(14)
                   .fontWeight(s.key === this.semesterKey ? FontWeight.Bold : FontWeight.Normal)
-                  .fontColor(s.key === this.semesterKey ? '#1E4E8C' : '#3A4657')
+                  .fontColor(s.key === this.semesterKey ? $r('app.color.brand_text') : $r('app.color.text_secondary'))
                 Text(`${s.courseCount} 门课 · ${this.semesterTag(s)}`)
                   .fontSize(10)
-                  .fontColor('#8A94A6')
+                  .fontColor($r('app.color.text_hint'))
                   .margin({ top: 2 })
               }
               .alignItems(HorizontalAlign.Start)
@@ -1597,10 +1597,10 @@ struct Index {
               if (s.key === this.semesterKey) {
                 Text('当前')
                   .fontSize(10)
-                  .fontColor('#FFFFFF')
+                  .fontColor($r('app.color.on_brand'))
                   .padding({ left: 6, right: 6, top: 2, bottom: 2 })
                   .borderRadius(8)
-                  .backgroundColor('#1E4E8C')
+                  .backgroundColor($r('app.color.brand_bg'))
               }
             }
             .width('100%')
@@ -1615,12 +1615,12 @@ struct Index {
       .height(this.semesters.length * 62)
       .scrollBar(BarState.Off)
 
-      Divider().color('#EEF1F5').margin({ top: 2, bottom: 2 })
+      Divider().color($r('app.color.divider')).margin({ top: 2, bottom: 2 })
 
       Row() {
         Text('清空本地缓存数据')
           .fontSize(13)
-          .fontColor('#B4543A')
+          .fontColor($r('app.color.danger2'))
           .layoutWeight(1)
       }
       .width('100%')
@@ -1640,28 +1640,28 @@ struct Index {
       Row() {
         Text(this.nowTag())
           .fontSize(10)
-          .fontColor('#FFFFFF')
+          .fontColor($r('app.color.on_brand'))
           .padding({ left: 8, right: 8, top: 3, bottom: 3 })
           .borderRadius(9)
           .backgroundColor(this.nowColor())
         Blank()
         Text(this.updatedAt === '' ? '' : `数据 ${this.updatedAt}`)
           .fontSize(10)
-          .fontColor('#9AA4B2')
+          .fontColor($r('app.color.text_faint'))
       }
       .width('100%')
 
       Text(this.nowTitle())
         .fontSize(16)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#16233A')
+        .fontColor($r('app.color.text_strong'))
         .maxLines(2)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .margin({ top: 8 })
 
       Text(this.nowSub())
         .fontSize(11)
-        .fontColor('#6B7686')
+        .fontColor($r('app.color.text_tertiary'))
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .margin({ top: 3 })
@@ -1674,7 +1674,7 @@ struct Index {
         Blank()
         Text(this.nowRange())
           .fontSize(10)
-          .fontColor('#9AA4B2')
+          .fontColor($r('app.color.text_faint'))
       }
       .width('100%')
       .margin({ top: 8 })
@@ -1682,7 +1682,7 @@ struct Index {
     .width('100%')
     .padding(14)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor('#FFFFFF')
+    .backgroundColor($r('app.color.surface'))
     .borderRadius(12)
     .margin({ left: 12, right: 12, top: 10 })
   }
@@ -1694,24 +1694,24 @@ struct Index {
       Column() {
         SymbolGlyph(icon)
           .fontSize(40)
-          .fontColor(['#C5D3E6'])
+          .fontColor([$r('app.color.icon_card_fg')])
       }
       .width(76)
       .height(76)
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center)
       .borderRadius(20)
-      .backgroundColor('#EAF0F8')
+      .backgroundColor($r('app.color.icon_card_bg'))
 
       Text(title)
         .fontSize(17)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#26313F')
+        .fontColor($r('app.color.text_primary'))
         .margin({ top: 18 })
 
       Text(hint)
         .fontSize(11)
-        .fontColor('#8A94A6')
+        .fontColor($r('app.color.text_hint'))
         .textAlign(TextAlign.Center)
         .margin({ top: 8 })
 
@@ -1719,11 +1719,11 @@ struct Index {
         Text('从教务系统同步')
           .fontSize(14)
           .fontWeight(FontWeight.Medium)
-          .fontColor('#FFFFFF')
+          .fontColor($r('app.color.on_brand'))
       }
       .padding({ left: 26, right: 26, top: 11, bottom: 11 })
       .borderRadius(22)
-      .backgroundColor('#1E4E8C')
+      .backgroundColor($r('app.color.brand_bg'))
       .margin({ top: 22 })
       .onClick(() => {
         this.tab = 3;
@@ -1732,7 +1732,7 @@ struct Index {
 
       Text('数据只存在本机，不经过任何服务器')
         .fontSize(9)
-        .fontColor('#B0B8C4')
+        .fontColor($r('app.color.text_faint2'))
         .margin({ top: 14 })
     }
     .width('100%')
@@ -1782,10 +1782,10 @@ struct Index {
         Column() {
           Text(`${p.index}`)
             .fontSize(11)
-            .fontColor('#8A94A6')
+            .fontColor($r('app.color.text_hint'))
           Text(p.start)
             .fontSize(8)
-            .fontColor('#B7BFCC')
+            .fontColor($r('app.color.text_faint3'))
             .margin({ top: 1 })
         }
         .height(this.rowH)
@@ -1806,12 +1806,12 @@ struct Index {
             Text(`周${w.label}`)
               .fontSize(12)
               .fontWeight(this.today() === w.index ? FontWeight.Bold : FontWeight.Normal)
-              .fontColor(this.today() === w.index ? '#1E4E8C' : '#5A6472')
+              .fontColor(this.today() === w.index ? $r('app.color.brand_text') : $r('app.color.text_dim'))
           }
           .width(this.colW)
           .height(this.headH)
           .justifyContent(FlexAlign.Center)
-          .backgroundColor(this.today() === w.index ? '#E3EDF9' : '#FFFFFF')
+          .backgroundColor(this.today() === w.index ? $r('app.color.cell_today') : $r('app.color.surface'))
         }, (w: Weekday) => `head_${w.index}`)
       }
 
@@ -1835,7 +1835,7 @@ struct Index {
             Column()
               .width('100%')
               .height('100%')
-              .backgroundColor(day >= 6 ? '#FAFBFD' : '#FFFFFF')
+              .backgroundColor(day >= 6 ? $r('app.color.grid_empty') : $r('app.color.surface'))
               .borderRadius(5)
           }
         }
@@ -1853,12 +1853,12 @@ struct Index {
       Text(c.name)
         .fontSize(this.nameFont())
         .lineHeight(this.nameFont() * 1.3)
-        .fontColor(c.practice ? '#1D6B3F' : '#17427A')
+        .fontColor(c.practice ? $r('app.color.success_text') : $r('app.color.brand_bg_deep'))
         .maxLines(3)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
       Text(c.location)
         .fontSize(this.locFont())
-        .fontColor(c.practice ? '#2F7D52' : '#5B84B8')
+        .fontColor(c.practice ? $r('app.color.success_text2') : $r('app.color.brand_text_dim'))
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .margin({ top: 2 })
@@ -1869,7 +1869,7 @@ struct Index {
     .justifyContent(FlexAlign.SpaceBetween)
     .alignItems(HorizontalAlign.Start)
     .borderRadius(5)
-    .backgroundColor(c.practice ? '#DDF3E4' : '#DCEAFA')
+    .backgroundColor(c.practice ? $r('app.color.success_bg') : $r('app.color.info_bg'))
     .onClick(() => {
       this.selected = c;
       this.sheetShow = true;
@@ -1882,11 +1882,11 @@ struct Index {
       Text('其它课程')
         .fontSize(12)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#3A4657')
+        .fontColor($r('app.color.text_secondary'))
       Blank()
       Text('◇ 讲课   ◆ 实践/实验')
         .fontSize(9)
-        .fontColor('#8A94A6')
+        .fontColor($r('app.color.text_hint'))
     }
     .width('100%')
     .padding({ left: 14, right: 14, top: 12, bottom: 8 })
@@ -1898,21 +1898,21 @@ struct Index {
       Row() {
         Text(c.name)
           .fontSize(12)
-          .fontColor('#3A4657')
+          .fontColor($r('app.color.text_secondary'))
           .layoutWeight(1)
         Text(c.weeks)
           .fontSize(10)
-          .fontColor('#1E4E8C')
+          .fontColor($r('app.color.brand_text'))
       }
       .width('100%')
       Row() {
         Text(c.teacher)
           .fontSize(10)
-          .fontColor('#8A94A6')
+          .fontColor($r('app.color.text_hint'))
           .layoutWeight(1)
         Text(c.note)
           .fontSize(9)
-          .fontColor('#B0803A')
+          .fontColor($r('app.color.warn'))
       }
       .width('100%')
       .margin({ top: 2 })
@@ -1920,7 +1920,7 @@ struct Index {
     .width('100%')
     .padding(10)
     .margin({ bottom: 8 })
-    .backgroundColor('#FFFFFF')
+    .backgroundColor($r('app.color.surface'))
     .borderRadius(8)
   }
 
@@ -1942,13 +1942,13 @@ struct Index {
         Text(c.name)
           .fontSize(17)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#16233A')
+          .fontColor($r('app.color.text_strong'))
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .layoutWeight(1)
         SymbolGlyph($r('sys.symbol.xmark'))
           .fontSize(15)
-          .fontColor(['#8A94A6'])
+          .fontColor([$r('app.color.text_hint')])
           .margin({ left: 8 })
           .onClick(() => {
             this.sheetShow = false;
@@ -1958,50 +1958,50 @@ struct Index {
 
       Text(this.selWeekHint())
         .fontSize(11)
-        .fontColor(c.practice ? '#1D6B3F' : '#1E4E8C')
+        .fontColor(c.practice ? $r('app.color.success_text') : $r('app.color.brand_text'))
         .margin({ top: 6 })
 
-      Divider().color('#EEF1F5').margin({ top: 12, bottom: 12 })
+      Divider().color($r('app.color.divider')).margin({ top: 12, bottom: 12 })
 
       Row() {
-        Text('时间').fontSize(12).fontColor('#8A94A6').width(52)
+        Text('时间').fontSize(12).fontColor($r('app.color.text_hint')).width(52)
         Text(`${weekdayLabel(c.weekday)} ${c.start}-${c.end} 节`)
-          .fontSize(13).fontColor('#3A4657').layoutWeight(1)
+          .fontSize(13).fontColor($r('app.color.text_secondary')).layoutWeight(1)
       }
       .width('100%')
 
       Row() {
-        Text('作息').fontSize(12).fontColor('#8A94A6').width(52)
-        Text(timeRange(c.start, c.end)).fontSize(13).fontColor('#3A4657').layoutWeight(1)
-      }
-      .width('100%')
-      .margin({ top: 10 })
-
-      Row() {
-        Text('地点').fontSize(12).fontColor('#8A94A6').width(52)
-        Text(c.location).fontSize(13).fontColor('#3A4657').layoutWeight(1)
+        Text('作息').fontSize(12).fontColor($r('app.color.text_hint')).width(52)
+        Text(timeRange(c.start, c.end)).fontSize(13).fontColor($r('app.color.text_secondary')).layoutWeight(1)
       }
       .width('100%')
       .margin({ top: 10 })
 
       Row() {
-        Text('教师').fontSize(12).fontColor('#8A94A6').width(52)
-        Text(c.teacher).fontSize(13).fontColor('#3A4657').layoutWeight(1)
+        Text('地点').fontSize(12).fontColor($r('app.color.text_hint')).width(52)
+        Text(c.location).fontSize(13).fontColor($r('app.color.text_secondary')).layoutWeight(1)
       }
       .width('100%')
       .margin({ top: 10 })
 
       Row() {
-        Text('周次').fontSize(12).fontColor('#8A94A6').width(52)
-        Text(weeksLabel(c.weeks)).fontSize(13).fontColor('#3A4657').layoutWeight(1)
+        Text('教师').fontSize(12).fontColor($r('app.color.text_hint')).width(52)
+        Text(c.teacher).fontSize(13).fontColor($r('app.color.text_secondary')).layoutWeight(1)
+      }
+      .width('100%')
+      .margin({ top: 10 })
+
+      Row() {
+        Text('周次').fontSize(12).fontColor($r('app.color.text_hint')).width(52)
+        Text(weeksLabel(c.weeks)).fontSize(13).fontColor($r('app.color.text_secondary')).layoutWeight(1)
       }
       .width('100%')
       .margin({ top: 10 })
 
       if (c.note !== '') {
         Row() {
-          Text('备注').fontSize(12).fontColor('#8A94A6').width(52)
-          Text(c.note).fontSize(12).fontColor('#B0803A').layoutWeight(1)
+          Text('备注').fontSize(12).fontColor($r('app.color.text_hint')).width(52)
+          Text(c.note).fontSize(12).fontColor($r('app.color.warn')).layoutWeight(1)
         }
         .width('100%')
         .margin({ top: 10 })

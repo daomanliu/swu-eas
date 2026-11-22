@@ -3,6 +3,146 @@
     {
       "name": "start_window_background",
       "value": "#FFFFFF"
+    },
+    {
+      "name": "brand_bg",
+      "value": "#1E4E8C"
+    },
+    {
+      "name": "brand_bg_deep",
+      "value": "#17427A"
+    },
+    {
+      "name": "brand_text",
+      "value": "#1E4E8C"
+    },
+    {
+      "name": "brand_text_dim",
+      "value": "#5B84B8"
+    },
+    {
+      "name": "on_brand",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "on_brand_sub",
+      "value": "#BFD2EA"
+    },
+    {
+      "name": "on_brand_sub2",
+      "value": "#9FBEE3"
+    },
+    {
+      "name": "on_brand_chip",
+      "value": "#2F63A8"
+    },
+    {
+      "name": "on_brand_chip_text",
+      "value": "#CFE0F5"
+    },
+    {
+      "name": "surface",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "page_bg",
+      "value": "#F2F4F7"
+    },
+    {
+      "name": "grid_empty",
+      "value": "#FAFBFD"
+    },
+    {
+      "name": "cell_today",
+      "value": "#E3EDF9"
+    },
+    {
+      "name": "text_primary",
+      "value": "#26313F"
+    },
+    {
+      "name": "text_strong",
+      "value": "#16233A"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#3A4657"
+    },
+    {
+      "name": "text_tertiary",
+      "value": "#6B7686"
+    },
+    {
+      "name": "text_hint",
+      "value": "#8A94A6"
+    },
+    {
+      "name": "text_faint",
+      "value": "#9AA4B2"
+    },
+    {
+      "name": "text_faint2",
+      "value": "#B0B8C4"
+    },
+    {
+      "name": "text_faint3",
+      "value": "#B7BFCC"
+    },
+    {
+      "name": "text_dim",
+      "value": "#5A6472"
+    },
+    {
+      "name": "divider",
+      "value": "#EEF1F5"
+    },
+    {
+      "name": "chip_bg_light",
+      "value": "#E6EEF9"
+    },
+    {
+      "name": "icon_card_bg",
+      "value": "#EAF0F8"
+    },
+    {
+      "name": "icon_card_fg",
+      "value": "#C5D3E6"
+    },
+    {
+      "name": "success",
+      "value": "#19A461"
+    },
+    {
+      "name": "success_bg",
+      "value": "#DDF3E4"
+    },
+    {
+      "name": "success_text",
+      "value": "#1D6B3F"
+    },
+    {
+      "name": "success_text2",
+      "value": "#2F7D52"
+    },
+    {
+      "name": "danger",
+      "value": "#C0392B"
+    },
+    {
+      "name": "danger2",
+      "value": "#B4543A"
+    },
+    {
+      "name": "warn",
+      "value": "#B0803A"
+    },
+    {
+      "name": "info_bg",
+      "value": "#DCEAFA"
+    },
+    {
+      "name": "btn_disabled",
+      "value": "#9BB4D8"
     }
   ]
 }
