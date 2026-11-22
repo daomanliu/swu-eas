@@ -73,6 +73,8 @@ struct Index {
   @State selGrade: GradeRow | null = null;
   @State showGradeDetail: boolean = false;
   @State showLogin: boolean = false;
+  @StorageProp('topInset') topInset: number = 0;
+  @StorageProp('bottomInset') bottomInset: number = 0;
   @State selExam: ExamItem | null = null;
   @State showExamDetail: boolean = false;
 
@@ -712,7 +714,7 @@ struct Index {
       .barBackgroundBlurStyle(BlurStyle.NONE)
       .barFloatingStyle({
         barSideMargin: 16,
-        barBottomMargin: 12,
+        barBottomMargin: this.bottomInset + 6,
         systemMaterialEffect: {
           materialType: hdsMaterial.MaterialType.ADAPTIVE,
           materialLevel: hdsMaterial.MaterialLevel.ADAPTIVE
@@ -756,6 +758,7 @@ struct Index {
     .width('100%')
     .height('100%')
     .backgroundColor('#F2F4F7')
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     .bindSheet(this.sheetShow, this.detailSheet(), {
       height: SheetSize.FIT_CONTENT,
       dragBar: true,
@@ -852,7 +855,7 @@ struct Index {
         })
       }
       .width('100%')
-      .padding({ left: 16, right: 14, top: 14, bottom: 12 })
+      .padding({ left: 16, right: 14, top: this.topInset + 14, bottom: 12 })
       .backgroundColor('#1E4E8C')
       .bindSheet(this.showGradeTerm, this.termSheet(true), {
         height: SheetSize.FIT_CONTENT,
@@ -973,8 +976,8 @@ struct Index {
         })
       }
       .width('100%')
-      .height(56)
-      .padding({ left: 16, right: 14 })
+      .height(this.topInset + 56)
+      .padding({ left: 16, right: 14, top: this.topInset })
       .backgroundColor('#1E4E8C')
 
       Column() {
@@ -1245,7 +1248,7 @@ struct Index {
         })
       }
       .width('100%')
-      .padding({ left: 16, right: 14, top: 14, bottom: 12 })
+      .padding({ left: 16, right: 14, top: this.topInset + 14, bottom: 12 })
       .backgroundColor('#1E4E8C')
       .bindSheet(this.showExamTerm, this.termSheet(false), {
         height: SheetSize.FIT_CONTENT,
@@ -1466,6 +1469,7 @@ struct Index {
       .visibility(this.courses.length > 0 ? Visibility.Visible : Visibility.None)
     }
     .width('100%')
+    .padding({ top: this.topInset })
     .backgroundColor('#1E4E8C')
     .bindSheet(this.showSemester, this.semesterSheet(), {
       height: SheetSize.FIT_CONTENT,

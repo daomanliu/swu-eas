@@ -1,6 +1,6 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
-import { window } from '@kit.ArkUI';
+import { display, window } from '@kit.ArkUI';
 
 const DOMAIN = 0x0000;
 
@@ -23,6 +23,18 @@ export default class EntryAbility extends UIAbility {
         return;
       }
       hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
+    });
+
+    // 沉浸式：内容延伸到状态栏/导航条下方
+    windowStage.getMainWindow().then((win: window.Window) => {
+      win.setWindowLayoutFullScreen(true);
+      const density: number = display.getDefaultDisplaySync().densityPixels;
+      const sys: window.AvoidArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
+      const ind: window.AvoidArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
+      AppStorage.setOrCreate('topInset', Math.round(sys.topRect.height / density));
+      AppStorage.setOrCreate('bottomInset', Math.round(ind.bottomRect.height / density));
+    }).catch((err: Error) => {
+      hilog.error(DOMAIN, 'testTag', 'Failed to set full screen. Cause: %{public}s', err.message);
     });
 
     try {
