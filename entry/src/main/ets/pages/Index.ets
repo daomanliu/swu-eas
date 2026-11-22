@@ -713,8 +713,8 @@ struct Index {
         barSideMargin: 16,
         barBottomMargin: 12,
         systemMaterialEffect: {
-          materialType: hdsMaterial.MaterialType.NONE,
-          materialLevel: hdsMaterial.MaterialLevel.SMOOTH
+          materialType: hdsMaterial.MaterialType.ADAPTIVE,
+          materialLevel: hdsMaterial.MaterialLevel.ADAPTIVE
         }
       })
       .onChange((index: number) => {
@@ -779,6 +779,7 @@ struct Index {
         .layoutWeight(1)
         .scrollBar(BarState.Off)
         .padding({ top: 8, bottom: 12 })
+        .contentEndOffset(88)
       }
     }
     .width('100%')
@@ -865,6 +866,7 @@ struct Index {
         .layoutWeight(1)
         .scrollBar(BarState.Off)
         .padding({ left: 14, right: 14, bottom: 12 })
+        .contentEndOffset(88)
       }
     }
     .width('100%')
@@ -1134,6 +1136,7 @@ struct Index {
         .layoutWeight(1)
         .scrollBar(BarState.Off)
         .padding({ left: 14, right: 14, top: 8, bottom: 12 })
+        .contentEndOffset(88)
       }
     }
     .width('100%')
