@@ -167,6 +167,14 @@
     {
       "name": "card_border",
       "value": "#12000000"
+    },
+    {
+      "name": "header_material_bg",
+      "value": "#F01E4E8C"
+    },
+    {
+      "name": "sheet_bg",
+      "value": "#F2FFFFFF"
     }
   ]
 }

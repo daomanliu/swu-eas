@@ -602,7 +602,9 @@ struct Index {
                   .fontColor($r('app.color.on_brand'))
                   .padding({ left: 6, right: 6, top: 2, bottom: 2 })
                   .borderRadius(8)
-                  .backgroundColor($r('app.color.brand_bg'))
+                  .backgroundColor($r('app.color.header_material_bg'))
+      .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
               }
             }
             .width('100%')
@@ -743,7 +745,8 @@ struct Index {
       height: SheetSize.FIT_CONTENT,
       dragBar: true,
       showClose: false,
-      backgroundColor: $r('app.color.surface'),
+      backgroundColor: $r('app.color.sheet_bg'),
+        blurStyle: BlurStyle.COMPONENT_THICK,
       onDisappear: () => {
         this.sheetShow = false;
         this.selected = null;
@@ -836,12 +839,15 @@ struct Index {
       }
       .width('100%')
       .padding({ left: 16, right: 14, top: this.topInset + 14, bottom: 12 })
-      .backgroundColor($r('app.color.brand_bg'))
+      .backgroundColor($r('app.color.header_material_bg'))
+      .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
       .bindSheet(this.showGradeTerm, this.termSheet(true), {
         height: SheetSize.FIT_CONTENT,
         dragBar: true,
         showClose: false,
-        backgroundColor: $r('app.color.surface'),
+        backgroundColor: $r('app.color.sheet_bg'),
+        blurStyle: BlurStyle.COMPONENT_THICK,
         onDisappear: () => {
           this.showGradeTerm = false;
         }
@@ -884,7 +890,8 @@ struct Index {
       height: SheetSize.FIT_CONTENT,
       dragBar: true,
       showClose: false,
-      backgroundColor: $r('app.color.surface'),
+      backgroundColor: $r('app.color.sheet_bg'),
+        blurStyle: BlurStyle.COMPONENT_THICK,
       onDisappear: () => {
         this.showGradeDetail = false;
         this.selGrade = null;
@@ -1038,7 +1045,9 @@ struct Index {
       .width('100%')
       .height(this.topInset + 56)
       .padding({ left: 16, right: 14, top: this.topInset })
-      .backgroundColor($r('app.color.brand_bg'))
+      .backgroundColor($r('app.color.header_material_bg'))
+      .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
 
       Column() {
         Column() {
@@ -1077,7 +1086,9 @@ struct Index {
         }
         .padding({ left: 26, right: 26, top: 11, bottom: 11 })
         .borderRadius(22)
-        .backgroundColor($r('app.color.brand_bg'))
+        .backgroundColor($r('app.color.header_material_bg'))
+      .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
         .margin({ top: 20 })
         .onClick(() => {
           this.openLogin();
@@ -1341,12 +1352,15 @@ struct Index {
       }
       .width('100%')
       .padding({ left: 16, right: 14, top: this.topInset + 14, bottom: 12 })
-      .backgroundColor($r('app.color.brand_bg'))
+      .backgroundColor($r('app.color.header_material_bg'))
+      .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
       .bindSheet(this.showExamTerm, this.termSheet(false), {
         height: SheetSize.FIT_CONTENT,
         dragBar: true,
         showClose: false,
-        backgroundColor: $r('app.color.surface'),
+        backgroundColor: $r('app.color.sheet_bg'),
+        blurStyle: BlurStyle.COMPONENT_THICK,
         onDisappear: () => {
           this.showExamTerm = false;
         }
@@ -1374,7 +1388,8 @@ struct Index {
       height: SheetSize.FIT_CONTENT,
       dragBar: true,
       showClose: false,
-      backgroundColor: $r('app.color.surface'),
+      backgroundColor: $r('app.color.sheet_bg'),
+        blurStyle: BlurStyle.COMPONENT_THICK,
       onDisappear: () => {
         this.showExamDetail = false;
         this.selExam = null;
@@ -1564,12 +1579,15 @@ struct Index {
     }
     .width('100%')
     .padding({ top: this.topInset })
-    .backgroundColor($r('app.color.brand_bg'))
+    .backgroundColor($r('app.color.header_material_bg'))
+      .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
     .bindSheet(this.showSemester, this.semesterSheet(), {
       height: SheetSize.FIT_CONTENT,
       dragBar: true,
       showClose: false,
-      backgroundColor: $r('app.color.surface'),
+      backgroundColor: $r('app.color.sheet_bg'),
+        blurStyle: BlurStyle.COMPONENT_THICK,
       onDisappear: () => {
         this.showSemester = false;
       }
@@ -1608,7 +1626,9 @@ struct Index {
                   .fontColor($r('app.color.on_brand'))
                   .padding({ left: 6, right: 6, top: 2, bottom: 2 })
                   .borderRadius(8)
-                  .backgroundColor($r('app.color.brand_bg'))
+                  .backgroundColor($r('app.color.header_material_bg'))
+      .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
               }
             }
             .width('100%')
@@ -1733,7 +1753,9 @@ struct Index {
       }
       .padding({ left: 26, right: 26, top: 11, bottom: 11 })
       .borderRadius(22)
-      .backgroundColor($r('app.color.brand_bg'))
+      .backgroundColor($r('app.color.header_material_bg'))
+      .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
       .margin({ top: 22 })
       .onClick(() => {
         this.tab = 3;
