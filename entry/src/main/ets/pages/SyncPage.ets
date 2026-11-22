@@ -15,6 +15,8 @@ export struct SyncPage {
   onCleared: () => void = () => {};
   /** 关闭登录浮层 */
   onClose: () => void = () => {};
+  /** 同步完成后点"查看课表" */
+  onDone: () => void = () => {};
 
   @StorageProp('topInset') topInset: number = 0;
 
@@ -264,9 +266,8 @@ export struct SyncPage {
         : `同步完成：${summary}`)
       : '写入本地失败';
     if (ok) {
-      setTimeout(() => {
-        this.onSynced();
-      }, 900);
+      // 通知宿主刷新数据，但浮层保持打开，由用户点"查看课表"再关
+      this.onSynced();
     }
   }
 
@@ -314,6 +315,20 @@ export struct SyncPage {
             .textAlign(TextAlign.Center)
 
           Row() {
+            Text('查看课表')
+              .fontSize(14)
+              .fontWeight(FontWeight.Medium)
+              .fontColor('#FFFFFF')
+          }
+          .padding({ left: 34, right: 34, top: 11, bottom: 11 })
+          .borderRadius(22)
+          .backgroundColor('#1E4E8C')
+          .margin({ top: 22 })
+          .onClick(() => {
+            this.onDone();
+          })
+
+          Row() {
             Text('重新同步')
               .fontSize(14)
               .fontColor('#1E4E8C')
@@ -321,7 +336,7 @@ export struct SyncPage {
           .padding({ left: 22, right: 22, top: 9, bottom: 9 })
           .borderRadius(18)
           .backgroundColor('#E6EEF9')
-          .margin({ top: 20 })
+          .margin({ top: 10 })
           .onClick(() => {
             this.done = false;
             this.started = false;

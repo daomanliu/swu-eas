@@ -951,6 +951,12 @@ struct Index {
       },
       onClose: () => {
         this.closeLogin();
+      },
+      onDone: () => {
+        this.closeLogin();
+        this.tab = 0;
+        this.hdsController.changeIndex(0);
+        this.reload();
       }
     })
   }
