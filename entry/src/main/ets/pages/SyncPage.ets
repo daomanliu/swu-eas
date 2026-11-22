@@ -9,8 +9,12 @@ const JW_KBCX: string = 'https://jw.swu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.
 
 @Component
 export struct SyncPage {
-  /** 同步成功后通知宿主（切回课表并刷新） */
+  /** 同步成功后通知宿主刷新数据 */
   onSynced: () => void = () => {};
+  /** 清空本地数据后通知宿主回到空态 */
+  onCleared: () => void = () => {};
+  /** 关闭登录浮层 */
+  onClose: () => void = () => {};
 
   @State status: string = '正在打开统一身份认证…';
   @State currentUrl: string = '';
@@ -24,6 +28,9 @@ export struct SyncPage {
   private examCount: number = 0;
   private firstErr: string = '';
   private started: boolean = false;
+  private clearing: boolean = false;
+  /** 每次清空自增；进行中的同步发现代次变了就丢弃结果 */
+  private syncGen: number = 0;
 
   aboutToAppear(): void {
     this.persistCookies();
@@ -49,7 +56,7 @@ export struct SyncPage {
 
   /** 只做一件事：等教务域名的 cookie 出现，然后走 HTTP 抓取 */
   private tick(): void {
-    if (this.started || this.done) {
+    if (this.started || this.done || this.clearing) {
       return;
     }
     try {
@@ -87,12 +94,42 @@ export struct SyncPage {
     if (ctx === undefined || ctx === null) {
       return;
     }
+    // 先挡住自动同步，否则清完下一秒又被 tick 抓回来
+    this.clearing = true;
+    this.started = true;
+    this.syncGen++;
+
     await TimetableRepo.clear(ctx);
-    this.status = '已清空本地数据，返回后即为空';
+
+    // 一并退出登录，避免下次进页面又自动抓取
+    try {
+      webview.WebCookieManager.clearAllCookiesSync(false);
+    } catch (err) {
+      // 忽略
+    }
+
+    this.busy = false;
+    this.done = false;
+    this.status = '已清空本地数据，需要重新登录';
+    this.currentUrl = '';
+    this.debugInfo = 'cookie: 已清除';
+
+    try {
+      this.controller.loadUrl(SSO_URL);
+    } catch (err) {
+      // 忽略
+    }
+
+    this.onCleared();
+    setTimeout(() => {
+      this.clearing = false;
+      this.started = false;
+    }, 1500);
   }
 
   private async runSync(cookie: string): Promise<void> {
     this.busy = true;
+    const gen: number = this.syncGen;
     try {
       const all: SyncedSemesterData[] = await JwSync.fetchAll(cookie);
       if (all.length === 0) {
@@ -134,6 +171,12 @@ export struct SyncPage {
       this.gradeCount = grades.length;
       this.examCount = exams.length;
 
+      if (gen !== this.syncGen) {
+        // 抓取期间用户点了"清空数据"，丢弃这批结果
+        this.busy = false;
+        this.started = false;
+        return;
+      }
       await this.save(all, grades, exams);
     } catch (e) {
       this.busy = false;
@@ -211,20 +254,24 @@ export struct SyncPage {
   build() {
     Column() {
       Row() {
-        Text('从教务系统同步')
+        Text('登录教务系统')
           .fontSize(19)
           .fontWeight(FontWeight.Bold)
           .fontColor('#FFFFFF')
           .layoutWeight(1)
 
-        Text('清空数据')
-          .fontSize(12)
-          .fontColor('#FFC9BA')
-          .width(72)
-          .textAlign(TextAlign.End)
-          .onClick(() => {
-            this.clearAll();
-          })
+        Row() {
+          Text('关闭')
+            .fontSize(12)
+            .fontColor('#1E4E8C')
+        }
+        .height(28)
+        .padding({ left: 12, right: 12 })
+        .borderRadius(14)
+        .backgroundColor('#E6EEF9')
+        .onClick(() => {
+          this.onClose();
+        })
       }
       .width('100%')
       .height(56)
@@ -253,11 +300,7 @@ export struct SyncPage {
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .width('100%')
-          Text(this.debugInfo)
-            .fontSize(9)
-            .fontColor('#C09050')
-            .maxLines(1)
-            .width('100%')
+
         }
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)

@@ -20,6 +20,7 @@ import {
   todayIndex
 } from '../model/TimetableData';
 import { router, uiMaterial } from '@kit.ArkUI';
+import { webview } from '@kit.ArkWeb';
 import { HdsTabs, HdsTabsController, hdsMaterial } from '@kit.UIDesignKit';
 import { SyncPage } from './SyncPage';
 import { TimetableRepo, LoadResult, SemesterRef } from '../model/TimetableRepo';
@@ -71,6 +72,7 @@ struct Index {
   @State materialOk: boolean = false;
   @State selGrade: GradeRow | null = null;
   @State showGradeDetail: boolean = false;
+  @State showLogin: boolean = false;
   @State selExam: ExamItem | null = null;
   @State showExamDetail: boolean = false;
 
@@ -700,11 +702,7 @@ struct Index {
         .tabBar(this.tabIcon($r('sys.symbol.doc_text'), $r('sys.symbol.doc_text'), '考试', 2))
 
         TabContent() {
-          SyncPage({
-            onSynced: () => {
-              this.reload();
-            }
-          })
+          this.syncPage()
         }
         .tabBar(this.tabIcon($r('sys.symbol.arrow_clockwise'), $r('sys.symbol.arrow_clockwise'), '同步', 3))
       }
@@ -725,6 +723,35 @@ struct Index {
       })
       .width('100%')
       .height('100%')
+
+      // 登录浮层：WebView 放在 TabContent 里会黑屏，放到根 Stack 上
+      if (this.showLogin) {
+        SyncPage({
+          onSynced: () => {
+            this.showLogin = false;
+            this.reload();
+          },
+          onCleared: () => {
+            this.courses = [];
+            this.loose = [];
+            this.semesters = [];
+            this.grades = [];
+            this.exams = [];
+            this.gradeTerm = '';
+            this.examTerm = '';
+            this.semesterKey = '';
+            this.semester = '';
+            this.sourceLabel = '';
+            this.lastSyncAt = '';
+            this.reload();
+          },
+          onClose: () => {
+            this.showLogin = false;
+          }
+        })
+          .width('100%')
+          .height('100%')
+      }
     }
     .width('100%')
     .height('100%')
@@ -920,6 +947,114 @@ struct Index {
       this.selGrade = r;
       this.showGradeDetail = true;
     })
+  }
+
+  @Builder
+  syncPage() {
+    Column() {
+      Row() {
+        Text('同步')
+          .fontSize(19)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#FFFFFF')
+          .layoutWeight(1)
+
+        Row() {
+          Text('清空数据')
+            .fontSize(12)
+            .fontColor('#1E4E8C')
+        }
+        .height(28)
+        .padding({ left: 12, right: 12 })
+        .borderRadius(14)
+        .backgroundColor('#E6EEF9')
+        .onClick(() => {
+          this.clearAllData();
+        })
+      }
+      .width('100%')
+      .height(56)
+      .padding({ left: 16, right: 14 })
+      .backgroundColor('#1E4E8C')
+
+      Column() {
+        Column() {
+          SymbolGlyph($r('sys.symbol.arrow_clockwise'))
+            .fontSize(38)
+            .fontColor(['#1E4E8C'])
+        }
+        .width(76)
+        .height(76)
+        .justifyContent(FlexAlign.Center)
+        .borderRadius(20)
+        .backgroundColor('#EAF0F8')
+
+        Text('登录一次，全部同步')
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#26313F')
+          .margin({ top: 18 })
+
+        Text('课表、成绩、考试一次抓取，数据只保存在本机')
+          .fontSize(11)
+          .fontColor('#8A94A6')
+          .textAlign(TextAlign.Center)
+          .margin({ top: 8 })
+
+        Text(this.lastSyncAt === '' ? '还没有同步过' : `上次同步：${this.lastSyncAt}`)
+          .fontSize(10)
+          .fontColor('#B0B8C4')
+          .margin({ top: 10 })
+
+        Row() {
+          Text('登录教务系统并同步')
+            .fontSize(14)
+            .fontWeight(FontWeight.Medium)
+            .fontColor('#FFFFFF')
+        }
+        .padding({ left: 26, right: 26, top: 11, bottom: 11 })
+        .borderRadius(22)
+        .backgroundColor('#1E4E8C')
+        .margin({ top: 20 })
+        .onClick(() => {
+          this.showLogin = true;
+        })
+
+        Text('账号密码只在教务系统页面输入，App 不接触')
+          .fontSize(9)
+          .fontColor('#B0B8C4')
+          .margin({ top: 14 })
+      }
+      .width('100%')
+      .layoutWeight(1)
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
+    }
+    .width('100%')
+    .height('100%')
+  }
+
+  private async clearAllData(): Promise<void> {
+    const ctx: common.UIAbilityContext | null = this.ctxOrNull();
+    if (ctx !== null) {
+      await TimetableRepo.clear(ctx);
+    }
+    try {
+      webview.WebCookieManager.clearAllCookiesSync(false);
+    } catch (err) {
+      // 忽略
+    }
+    this.courses = [];
+    this.loose = [];
+    this.semesters = [];
+    this.grades = [];
+    this.exams = [];
+    this.gradeTerm = '';
+    this.examTerm = '';
+    this.semesterKey = '';
+    this.semester = '';
+    this.sourceLabel = '';
+    this.lastSyncAt = '';
   }
 
   @Builder
