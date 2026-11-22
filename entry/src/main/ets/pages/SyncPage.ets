@@ -31,6 +31,8 @@ export struct SyncPage {
   private clearing: boolean = false;
   /** 每次清空自增；进行中的同步发现代次变了就丢弃结果 */
   private syncGen: number = 0;
+  /** 上一次失败的 cookie 指纹：同一个会话失败后不再自动重试，避免每 1.5 秒刷一次 */
+  private failedCookie: string = '';
 
   aboutToAppear(): void {
     this.persistCookies();
@@ -72,6 +74,10 @@ export struct SyncPage {
 
     const cookie: string = JwSync.cookie();
     const ok: boolean = JwSync.isLoggedIn(cookie);
+    if (ok && cookie === this.failedCookie) {
+      // 这个会话已经失败过，等用户重新登录（cookie 变了）再说
+      return;
+    }
     if (ok) {
       this.started = true;
       this.status = '已登录，正在抓取课表、成绩和考试…';
@@ -113,6 +119,7 @@ export struct SyncPage {
 
     this.busy = false;
     this.done = false;
+    this.failedCookie = '';
     this.status = '已清空本地数据，需要重新登录';
     this.currentUrl = '';
     this.debugInfo = 'cookie: 已清除';
@@ -138,6 +145,7 @@ export struct SyncPage {
       if (all.length === 0) {
         this.busy = false;
         this.started = false;
+        this.failedCookie = cookie;
         this.status = '没有拿到课表，请确认已登录教务系统';
         return;
       }
@@ -184,8 +192,10 @@ export struct SyncPage {
     } catch (e) {
       this.busy = false;
       this.started = false;
+      // 记下这个会话，tick 不会再用它自动重试（否则每 1.5 秒刷一次）
+      this.failedCookie = cookie;
       const msg: string = (e as Error).message;
-      this.status = msg === 'EXPIRED' ? '教务系统登录已过期，请重新登录' : `抓取失败：${msg.slice(0, 30)}`;
+      this.status = msg === 'EXPIRED' ? '登录已过期，请重新登录' : `抓取失败：${msg.slice(0, 30)}`;
     }
   }
 
