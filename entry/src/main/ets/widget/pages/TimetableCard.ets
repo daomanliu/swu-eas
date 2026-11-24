@@ -104,14 +104,17 @@ struct TimetableCard {
 
       Divider()
         .color(DIVIDER_COLOR)
-        .margin({ top: 8, bottom: 8 })
+        .margin({ top: 10, bottom: 10 })
 
-      // ------------------------------------------------ 第二段：下一场考试
+      // ------------------------------------------------ 第二段：下一场考试（与上一段同构）
       Column() {
         Row() {
           Text('下一场考试')
             .fontSize(9)
-            .fontColor(TEXT_HINT)
+            .fontColor(TAG_TEXT)
+            .padding({ left: 5, right: 5, top: 1, bottom: 1 })
+            .borderRadius(4)
+            .backgroundColor(TAG_BG)
           Blank()
           Text(this.hasExam === '1' ? this.examRemain : '')
             .fontSize(9)
@@ -121,44 +124,38 @@ struct TimetableCard {
 
         if (this.hasExam === '1') {
           Text(this.examName)
-            .fontSize(13)
-            .fontWeight(FontWeight.Medium)
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
             .fontColor(TEXT_PRIMARY)
-            .maxLines(2)
+            .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
-            .margin({ top: 5 })
+            .margin({ top: 6 })
             .width(FULL)
 
           Row() {
-            Text(this.examDate)
+            Text(this.examDate + '  ' + this.examSlot)
               .fontSize(11)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(TAG_TEXT)
-              .padding({ left: 5, right: 5, top: 1, bottom: 1 })
-              .borderRadius(4)
-              .backgroundColor(EXAM_CHIP_BG)
-            Text(this.examSlot)
-              .fontSize(10)
+              .fontWeight(FontWeight.Medium)
               .fontColor(TEXT_SECONDARY)
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
-              .margin({ left: 5 })
+            Text(this.examPlace)
+              .fontSize(9)
+              .fontColor(TEXT_HINT)
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+              .layoutWeight(1)
+              .textAlign(TextAlign.End)
+              .margin({ left: 4 })
           }
           .width(FULL)
-          .margin({ top: 5 })
-
-          Text(this.examPlace)
-            .fontSize(9)
-            .fontColor(TEXT_HINT)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-            .margin({ top: 3 })
-            .width(FULL)
+          .margin({ top: 4 })
         } else {
           Column() {
             Text('暂无考试安排')
-              .fontSize(12)
-              .fontColor(TEXT_HINT)
+              .fontSize(13)
+              .fontWeight(FontWeight.Medium)
+              .fontColor(TEXT_SECONDARY)
             Text('教务排考后同步一次即可')
               .fontSize(9)
               .fontColor(TEXT_HINT)
@@ -175,10 +172,10 @@ struct TimetableCard {
     }
     .width(FULL)
     .height(FULL)
-    .padding(12)
+    .padding(14)
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(CARD_BG)
-    .borderRadius(16)
+    .borderRadius(18)
     .onClick(() => {
       // 点整张卡片回到 App（EntryAbility 为本模块主入口）
       postCardAction(this, {
