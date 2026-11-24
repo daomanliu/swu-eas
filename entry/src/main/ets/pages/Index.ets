@@ -748,7 +748,7 @@ struct Index {
         },
         miniBar: {
           miniBarBuilder: () => this.syncMiniBar(),
-          enableMiniBarBackground: false,
+          enableMiniBarBackground: true,
           onBarStyleChange: (style: HdsBarStyle) => {
             this.miniExpanded = style === HdsBarStyle.EXPAND;
           }
@@ -1260,11 +1260,6 @@ struct Index {
       }
     }
     .height(60)
-    .borderRadius(30)
-    .backgroundColor($r('app.color.card_material_bg'))
-    .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
-    .border({ width: 0.5, color: $r('app.color.card_border') })
-    .clip(true)
   }
 
   @Builder
