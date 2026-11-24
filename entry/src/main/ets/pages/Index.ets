@@ -928,12 +928,19 @@ struct Index {
               this.showAddHint = true;
             }))
 
+            Column() {
+              this.weekListCard()
+            }
+            .gesture(LongPressGesture().onAction(() => {
+              this.showAddHint = true;
+            }))
+
             Text('长按卡片可查看添加到桌面 / 负一屏的方法')
               .fontSize(9)
               .fontColor($r('app.color.text_faint2'))
               .width('100%')
               .textAlign(TextAlign.Center)
-              .margin({ top: 4, bottom: 120 })
+              .margin({ top: 4, bottom: 96 })
           }
           .width('100%')
         }
@@ -1050,7 +1057,7 @@ struct Index {
     .alignItems(HorizontalAlign.Start)
     .padding(14)
     .backgroundColor($r('app.color.card_material_bg'))
-    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
     .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(12)
     .margin({ left: 12, right: 12, top: 10 })
@@ -1111,13 +1118,90 @@ struct Index {
     .alignItems(HorizontalAlign.Start)
     .padding(14)
     .backgroundColor($r('app.color.card_material_bg'))
-    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
     .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(12)
     .margin({ left: 12, right: 12, top: 10 })
   }
 
   /** 右侧自适应悬浮导航：收起是圆形按钮，展开出现「立即同步」 */
+
+  /** 本周剩余课程：给首页凑够可滚动内容，玻璃材质才有东西可折射 */
+  private upcoming(): Course[] {
+    const out: Course[] = [];
+    for (let i: number = 0; i < this.courses.length; i++) {
+      const c: Course = this.courses[i];
+      if (!isActive(c, this.week)) {
+        continue;
+      }
+      out.push(c);
+    }
+    out.sort((a: Course, b: Course) => a.weekday - b.weekday || a.start - b.start);
+    const day: number = todayIndex(new Date());
+    return out.filter((c: Course) => c.weekday >= day);
+  }
+
+  @Builder
+  weekListCard() {
+    Column() {
+      Row() {
+        Text('本周课程')
+          .fontSize(10)
+          .fontColor($r('app.color.on_brand'))
+          .padding({ left: 8, right: 8, top: 3, bottom: 3 })
+          .borderRadius(8)
+          .backgroundColor($r('app.color.brand_text'))
+        Blank()
+        Text(this.courses.length.toString() + ' 门')
+          .fontSize(10)
+          .fontColor($r('app.color.text_hint'))
+      }
+      .width('100%')
+
+      ForEach(this.upcoming(), (c: Course) => {
+        Row() {
+          Column() {
+            Text(weekdayLabel(c.weekday))
+              .fontSize(11)
+              .fontWeight(FontWeight.Medium)
+              .fontColor($r('app.color.brand_text'))
+            Text(timeRange(c.start, c.end))
+              .fontSize(9)
+              .fontColor($r('app.color.text_hint'))
+              .margin({ top: 2 })
+          }
+          .width(74)
+          .alignItems(HorizontalAlign.Start)
+
+          Column() {
+            Text(c.name)
+              .fontSize(13)
+              .fontColor($r('app.color.text_primary'))
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+            Text(c.location)
+              .fontSize(10)
+              .fontColor($r('app.color.text_hint'))
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+              .margin({ top: 2 })
+          }
+          .layoutWeight(1)
+          .alignItems(HorizontalAlign.Start)
+        }
+        .width('100%')
+        .padding({ top: 8, bottom: 8 })
+      }, (c: Course) => 'home_' + this.week.toString() + '_' + c.id)
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .padding(14)
+    .backgroundColor($r('app.color.card_material_bg'))
+    .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
+    .border({ width: 0.5, color: $r('app.color.card_border') })
+    .borderRadius(12)
+    .margin({ left: 12, right: 12, top: 10 })
+  }
 
   /** 悬浮条上的迷你条：收起是一枚圆钮，点开变成「立即同步 / 清空数据」胶囊 */
   @Builder
@@ -1178,7 +1262,7 @@ struct Index {
     .height(60)
     .borderRadius(30)
     .backgroundColor($r('app.color.card_material_bg'))
-    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
     .border({ width: 0.5, color: $r('app.color.card_border') })
     .clip(true)
   }
@@ -1359,7 +1443,7 @@ struct Index {
     .width('100%')
     .padding({ left: 16, right: 16, top: 11, bottom: 11 })
     .backgroundColor($r('app.color.card_material_bg'))
-    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
     .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(10)
     .margin({ bottom: 8 })
@@ -1780,7 +1864,7 @@ struct Index {
     .alignItems(HorizontalAlign.Start)
     .padding(12)
     .backgroundColor($r('app.color.card_material_bg'))
-    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
     .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(10)
     .margin({ bottom: 8 })
@@ -2047,7 +2131,7 @@ struct Index {
     .padding(14)
     .alignItems(HorizontalAlign.Start)
     .backgroundColor($r('app.color.card_material_bg'))
-    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
     .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(12)
     .margin({ left: 12, right: 12, top: 10 })
@@ -2289,7 +2373,7 @@ struct Index {
     .padding(10)
     .margin({ bottom: 8 })
     .backgroundColor($r('app.color.card_material_bg'))
-    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
     .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(8)
   }
