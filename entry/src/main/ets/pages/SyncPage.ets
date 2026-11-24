@@ -2,6 +2,7 @@ import { webview } from '@kit.ArkWeb';
 import { common } from '@kit.AbilityKit';
 import { TimetableRepo, SemesterRef, SemesterIndex, SyncedSemester } from '../model/TimetableRepo';
 import { JwSync, SyncedSemesterData, GradeItem, ExamItem } from '../model/JwSync';
+import EntryFormAbility from '../entryformability/EntryFormAbility';
 
 /** 统一身份认证 → 教务系统（办事大厅点「教务系统」跳的就是这个） */
 const SSO_URL: string = 'https://uaaap.swu.edu.cn/cas/login?service=https%3A%2F%2Fjw.swu.edu.cn%2Fsso%2Fzllogin';
@@ -268,6 +269,15 @@ export struct SyncPage {
       : '写入本地失败';
     // 不在这里通知宿主：宿主一刷新会重建登录浮层，结果页就没了
     // 数据在点"查看课表"时由 onDone 统一刷新
+
+    if (ok) {
+      // 推送桌面卡片：让卡片上的"下一节课/下一场考试"立刻跟着缓存更新
+      try {
+        await EntryFormAbility.push(ctx);
+      } catch (err) {
+        // 没有卡片或推送失败都不影响同步结果
+      }
+    }
   }
 
   build() {
@@ -287,7 +297,9 @@ export struct SyncPage {
         .height(28)
         .padding({ left: 12, right: 12 })
         .borderRadius(14)
-        .backgroundColor($r('app.color.chip_bg_light'))
+        .backgroundColor($r('app.color.header_material_bg'))
+        .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+        .border({ width: 0.5, color: $r('app.color.card_border') })
         .onClick(() => {
           this.onClose();
         })
@@ -295,7 +307,7 @@ export struct SyncPage {
       .width('100%')
       .height(this.topInset + 56)
       .padding({ left: 16, right: 14, top: this.topInset })
-      .backgroundColor($r('app.color.brand_bg'))
+      .backgroundColor($r('app.color.header_material_bg'))
 
       if (this.done) {
         Column() {
@@ -321,7 +333,9 @@ export struct SyncPage {
           }
           .padding({ left: 34, right: 34, top: 11, bottom: 11 })
           .borderRadius(22)
-          .backgroundColor($r('app.color.brand_bg'))
+          .backgroundColor($r('app.color.header_material_bg'))
+          .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+          .border({ width: 0.5, color: $r('app.color.card_border') })
           .margin({ top: 22 })
           .onClick(() => {
             this.onDone();
@@ -334,7 +348,9 @@ export struct SyncPage {
           }
           .padding({ left: 22, right: 22, top: 9, bottom: 9 })
           .borderRadius(18)
-          .backgroundColor($r('app.color.chip_bg_light'))
+          .backgroundColor($r('app.color.card_material_bg'))
+          .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+          .border({ width: 0.5, color: $r('app.color.card_border') })
           .margin({ top: 10 })
           .onClick(() => {
             this.done = false;
@@ -395,7 +411,9 @@ export struct SyncPage {
           .height(44)
           .justifyContent(FlexAlign.Center)
           .borderRadius(22)
-          .backgroundColor(this.busy ? $r('app.color.btn_disabled') : $r('app.color.brand_text'))
+          .backgroundColor(this.busy ? $r('app.color.btn_disabled') : $r('app.color.header_material_bg'))
+          .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+          .border({ width: 0.5, color: $r('app.color.card_border') })
           .margin({ top: 6 })
           .onClick(() => {
             if (!this.busy) {

@@ -73,6 +73,8 @@ struct Index {
   @State selGrade: GradeRow | null = null;
   @State showGradeDetail: boolean = false;
   @State showLogin: boolean = false;
+  @State railOpen: boolean = false;
+  @State showAddHint: boolean = false;
   @StorageProp('backTick') @Watch('onBackTick') backTick: number = 0;
   @StorageProp('topInset') topInset: number = 0;
   @StorageProp('bottomInset') bottomInset: number = 0;
@@ -620,8 +622,8 @@ struct Index {
                   .fontColor($r('app.color.on_brand'))
                   .padding({ left: 6, right: 6, top: 2, bottom: 2 })
                   .borderRadius(8)
-                  .backgroundColor($r('app.color.header_material_bg'))
-      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
+                  .backgroundColor($r('app.color.brand_text'))
+
               }
             }
             .width('100%')
@@ -713,24 +715,24 @@ struct Index {
     Stack({ alignContent: Alignment.Bottom }) {
       HdsTabs({ barPosition: BarPosition.End, controller: this.hdsController }) {
         TabContent() {
+          this.homePage()
+        }
+        .tabBar(this.tabIcon($r('sys.symbol.house'), $r('sys.symbol.house'), '首页', 0))
+
+        TabContent() {
           this.timetablePage()
         }
-        .tabBar(this.tabIcon($r('sys.symbol.calendar'), $r('sys.symbol.calendar'), '课表', 0))
+        .tabBar(this.tabIcon($r('sys.symbol.calendar'), $r('sys.symbol.calendar'), '课表', 1))
 
         TabContent() {
           this.gradesPage()
         }
-        .tabBar(this.tabIcon($r('sys.symbol.graduationcap'), $r('sys.symbol.graduationcap'), '成绩', 1))
+        .tabBar(this.tabIcon($r('sys.symbol.graduationcap'), $r('sys.symbol.graduationcap'), '成绩', 2))
 
         TabContent() {
           this.examsPage()
         }
-        .tabBar(this.tabIcon($r('sys.symbol.doc_text'), $r('sys.symbol.doc_text'), '考试', 2))
-
-        TabContent() {
-          this.syncPage()
-        }
-        .tabBar(this.tabIcon($r('sys.symbol.arrow_clockwise'), $r('sys.symbol.arrow_clockwise'), '同步', 3))
+        .tabBar(this.tabIcon($r('sys.symbol.doc_text'), $r('sys.symbol.doc_text'), '考试', 3))
       }
       .barOverlap(true)
       .barPosition(BarPosition.End)
@@ -749,6 +751,8 @@ struct Index {
       })
       .width('100%')
       .height('100%')
+
+      this.sideRail()
 
       if (this.showLogin) {
         this.loginCover()
@@ -769,6 +773,418 @@ struct Index {
         this.selected = null;
       }
     })
+  }
+
+  // ================= 首页 =================
+
+  private examStartMs(t: string): number {
+    const m: RegExpMatchArray | null = t.match(/^(\d{4})-(\d{2})-(\d{2})\((\d{2}):(\d{2})/);
+    if (m === null) {
+      return Number.MAX_SAFE_INTEGER;
+    }
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5])).getTime();
+  }
+
+  private nextExam(): ExamItem | null {
+    const now: number = Date.now();
+    let best: ExamItem | null = null;
+    let bestMs: number = Number.MAX_SAFE_INTEGER;
+    for (let i: number = 0; i < this.exams.length; i++) {
+      const ms: number = this.examStartMs(this.exams[i].time);
+      if (ms > now && ms < bestMs) {
+        best = this.exams[i];
+        bestMs = ms;
+      }
+    }
+    return best;
+  }
+
+  /** 必修 + 专业选修；排除国际课程与跨专业选修 */
+  private coreGrades(): GradeItem[] {
+    const out: GradeItem[] = [];
+    for (let i: number = 0; i < this.grades.length; i++) {
+      const n: string = this.grades[i].nature;
+      if (n.indexOf('国际') >= 0 || n.indexOf('跨专业') >= 0) {
+        continue;
+      }
+      if (n.indexOf('必修') >= 0 || n.indexOf('专业选修') >= 0) {
+        out.push(this.grades[i]);
+      }
+    }
+    return out;
+  }
+
+  private coreAvg(): number {
+    const list: GradeItem[] = this.coreGrades();
+    let cw: number = 0;
+    let sum: number = 0;
+    for (let i: number = 0; i < list.length; i++) {
+      const c: number = Number(list[i].credit);
+      const s: number = Number(list[i].score);
+      if (!isNaN(c) && !isNaN(s) && c > 0) {
+        cw += c;
+        sum += c * s;
+      }
+    }
+    return cw === 0 ? 0 : sum / cw;
+  }
+
+  private coreGpa(): number {
+    const list: GradeItem[] = this.coreGrades();
+    let cw: number = 0;
+    let sum: number = 0;
+    for (let i: number = 0; i < list.length; i++) {
+      const c: number = Number(list[i].credit);
+      const gp: number = Number(list[i].gpa);
+      if (!isNaN(c) && !isNaN(gp) && c > 0) {
+        cw += c;
+        sum += c * gp;
+      }
+    }
+    return cw === 0 ? 0 : sum / cw;
+  }
+
+  private coreCredit(): number {
+    const list: GradeItem[] = this.coreGrades();
+    let c: number = 0;
+    for (let i: number = 0; i < list.length; i++) {
+      const v: number = Number(list[i].credit);
+      if (!isNaN(v)) {
+        c += v;
+      }
+    }
+    return c;
+  }
+
+  @Builder
+  homePage() {
+    Column() {
+      Row() {
+        Column() {
+          Text('首页')
+            .fontSize(19)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.on_brand'))
+          Text(this.lastSyncAt === '' ? '同步后显示' : this.syncLabel())
+            .fontSize(11)
+            .fontColor($r('app.color.on_brand_sub'))
+            .margin({ top: 2 })
+        }
+        .alignItems(HorizontalAlign.Start)
+        .layoutWeight(1)
+
+        Row() {
+          Text(this.semester === '' ? '未同步' : this.semester)
+            .fontSize(10)
+            .fontColor($r('app.color.on_brand_chip_text'))
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+          SymbolGlyph($r('sys.symbol.chevron_down'))
+            .fontSize(9)
+            .fontColor([$r('app.color.on_brand_chip_text')])
+            .margin({ left: 3 })
+        }
+        .constraintSize({ maxWidth: 150 })
+        .padding({ left: 10, right: 8, top: 6, bottom: 6 })
+        .borderRadius(13)
+        .backgroundColor($r('app.color.on_brand_chip'))
+        .onClick(() => {
+          this.showSemester = true;
+        })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 14, top: this.topInset + 14, bottom: 12 })
+      .backgroundColor($r('app.color.header_material_bg'))
+
+      if (this.courses.length === 0 && this.grades.length === 0) {
+        this.pageEmpty($r('sys.symbol.house'), '还没有数据', '登录一次教务系统，课表成绩考试一起抓')
+      } else {
+        Scroll() {
+          Column() {
+            Column() {
+              this.nowCard()
+            }
+            .gesture(LongPressGesture().onAction(() => {
+              this.showAddHint = true;
+            }))
+
+            Column() {
+              this.nextExamCard()
+            }
+            .gesture(LongPressGesture().onAction(() => {
+              this.showAddHint = true;
+            }))
+
+            Column() {
+              this.coreGpaCard()
+            }
+            .gesture(LongPressGesture().onAction(() => {
+              this.showAddHint = true;
+            }))
+
+            Text('长按卡片可查看添加到桌面 / 负一屏的方法')
+              .fontSize(9)
+              .fontColor($r('app.color.text_faint2'))
+              .width('100%')
+              .textAlign(TextAlign.Center)
+              .margin({ top: 4, bottom: 120 })
+          }
+          .width('100%')
+        }
+        .layoutWeight(1)
+        .scrollBar(BarState.Off)
+        .align(Alignment.TopStart)
+      }
+    }
+    .width('100%')
+    .height('100%')
+    .bindSheet(this.showAddHint, this.addHintSheet(), {
+      height: SheetSize.FIT_CONTENT,
+      dragBar: true,
+      showClose: false,
+      backgroundColor: $r('app.color.sheet_bg'),
+      blurStyle: BlurStyle.COMPONENT_THICK,
+      onDisappear: () => {
+        this.showAddHint = false;
+      }
+    })
+  }
+
+  @Builder
+  addHintSheet() {
+    Column() {
+      Text('添加到桌面 / 负一屏')
+        .fontSize(17)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_strong'))
+
+      Text('1. 回到桌面，长按空白处')
+        .fontSize(13)
+        .fontColor($r('app.color.text_secondary'))
+        .width('100%')
+        .margin({ top: 14 })
+      Text('2. 点「服务卡片」，找到 SWU教务')
+        .fontSize(13)
+        .fontColor($r('app.color.text_secondary'))
+        .width('100%')
+        .margin({ top: 8 })
+      Text('3. 把卡片拖到桌面；负一屏在桌面最左侧一屏')
+        .fontSize(13)
+        .fontColor($r('app.color.text_secondary'))
+        .width('100%')
+        .margin({ top: 8 })
+
+      Text('卡片会展示下一节课和下一场考试，数据随应用同步自动刷新')
+        .fontSize(10)
+        .fontColor($r('app.color.text_faint2'))
+        .width('100%')
+        .margin({ top: 14 })
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .padding({ left: 18, right: 18, top: 6, bottom: 28 })
+  }
+
+  @Builder
+  nextExamCard() {
+    Column() {
+      Row() {
+        Text('下一场考试')
+          .fontSize(10)
+          .fontColor($r('app.color.on_brand'))
+          .padding({ left: 8, right: 8, top: 3, bottom: 3 })
+          .borderRadius(8)
+          .backgroundColor($r('app.color.brand_text'))
+
+        Blank()
+
+        if (this.nextExam() !== null) {
+          Text(this.examDate((this.nextExam() as ExamItem).time))
+            .fontSize(26)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.brand_text'))
+        }
+      }
+      .width('100%')
+
+      if (this.nextExam() === null) {
+        Text('暂无考试安排')
+          .fontSize(14)
+          .fontColor($r('app.color.text_tertiary'))
+          .margin({ top: 12 })
+      } else {
+        Text((this.nextExam() as ExamItem).name)
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .margin({ top: 8 })
+
+        Row() {
+          SymbolGlyph($r('sys.symbol.clock'))
+            .fontSize(11)
+            .fontColor([$r('app.color.text_hint')])
+            .margin({ right: 4 })
+          Text(this.examTime((this.nextExam() as ExamItem).time))
+            .fontSize(12)
+            .fontColor($r('app.color.text_secondary'))
+          Blank()
+          Text((this.nextExam() as ExamItem).place)
+            .fontSize(12)
+            .fontColor($r('app.color.text_secondary'))
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+        }
+        .width('100%')
+        .margin({ top: 8 })
+      }
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .padding(14)
+    .backgroundColor($r('app.color.card_material_bg'))
+    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .border({ width: 0.5, color: $r('app.color.card_border') })
+    .borderRadius(12)
+    .margin({ left: 12, right: 12, top: 10 })
+  }
+
+  @Builder
+  coreGpaCard() {
+    Column() {
+      Row() {
+        Text('必修 + 专业选修')
+          .fontSize(10)
+          .fontColor($r('app.color.on_brand'))
+          .padding({ left: 8, right: 8, top: 3, bottom: 3 })
+          .borderRadius(8)
+          .backgroundColor($r('app.color.brand_text'))
+        Blank()
+        Text(this.coreGrades().length.toString() + ' 门 · ' + this.coreCredit().toFixed(1) + ' 学分')
+          .fontSize(10)
+          .fontColor($r('app.color.text_hint'))
+      }
+      .width('100%')
+
+      Row() {
+        Column() {
+          Text(this.coreAvg().toFixed(1))
+            .fontSize(30)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.text_primary'))
+          Text('加权平均分')
+            .fontSize(10)
+            .fontColor($r('app.color.text_hint'))
+            .margin({ top: 2 })
+        }
+        .alignItems(HorizontalAlign.Start)
+        .layoutWeight(1)
+
+        Column() {
+          Text(this.coreGpa().toFixed(2))
+            .fontSize(30)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.success'))
+          Text('绩点')
+            .fontSize(10)
+            .fontColor($r('app.color.text_hint'))
+            .margin({ top: 2 })
+        }
+        .alignItems(HorizontalAlign.End)
+      }
+      .width('100%')
+      .margin({ top: 10 })
+
+      Text('不含国际课程、跨专业选修课')
+        .fontSize(9)
+        .fontColor($r('app.color.text_faint2'))
+        .margin({ top: 8 })
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .padding(14)
+    .backgroundColor($r('app.color.card_material_bg'))
+    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+    .border({ width: 0.5, color: $r('app.color.card_border') })
+    .borderRadius(12)
+    .margin({ left: 12, right: 12, top: 10 })
+  }
+
+  /** 右侧自适应悬浮导航：收起是圆形按钮，展开出现「立即同步」 */
+  @Builder
+  sideRail() {
+    Row() {
+      Column() {
+        if (this.railOpen) {
+          Row() {
+            SymbolGlyph($r('sys.symbol.arrow_clockwise'))
+              .fontSize(14)
+              .fontColor([$r('app.color.on_brand')])
+              .margin({ right: 6 })
+            Text('立即同步')
+              .fontSize(13)
+              .fontWeight(FontWeight.Medium)
+              .fontColor($r('app.color.on_brand'))
+          }
+          .height(40)
+          .padding({ left: 14, right: 16 })
+          .borderRadius(20)
+          .backgroundColor($r('app.color.header_material_bg'))
+          .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+          .border({ width: 0.5, color: $r('app.color.card_border') })
+          .margin({ bottom: 10 })
+          .onClick(() => {
+            this.railOpen = false;
+            this.openLogin();
+          })
+
+          Row() {
+            SymbolGlyph($r('sys.symbol.trash'))
+              .fontSize(13)
+              .fontColor([$r('app.color.danger2')])
+              .margin({ right: 5 })
+            Text('清空数据')
+              .fontSize(12)
+              .fontColor($r('app.color.danger2'))
+          }
+          .height(34)
+          .padding({ left: 14, right: 16 })
+          .borderRadius(17)
+          .backgroundColor($r('app.color.card_material_bg'))
+          .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+          .border({ width: 0.5, color: $r('app.color.card_border') })
+          .margin({ bottom: 10 })
+          .onClick(() => {
+            this.railOpen = false;
+            this.confirmClear();
+          })
+        }
+
+        Row() {
+          SymbolGlyph(this.railOpen ? $r('sys.symbol.xmark') : $r('sys.symbol.arrow_clockwise'))
+            .fontSize(18)
+            .fontColor([$r('app.color.brand_text')])
+        }
+        .width(44)
+        .height(44)
+        .justifyContent(FlexAlign.Center)
+        .borderRadius(22)
+        .backgroundColor($r('app.color.card_material_bg'))
+        .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+        .border({ width: 0.5, color: $r('app.color.card_border') })
+        .onClick(() => {
+          this.railOpen = !this.railOpen;
+        })
+      }
+      .alignItems(HorizontalAlign.End)
+      .margin({ right: 10, bottom: 96 })
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.End)
+    .alignItems(VerticalAlign.Bottom)
+    .padding({ bottom: this.bottomInset })
   }
 
   @Builder
@@ -1035,93 +1451,6 @@ struct Index {
     }
   }
 
-  @Builder
-  syncPage() {
-    Column() {
-      Row() {
-        Text('同步')
-          .fontSize(19)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.on_brand'))
-          .layoutWeight(1)
-
-        Row() {
-          Text('清空数据')
-            .fontSize(12)
-            .fontColor($r('app.color.brand_text'))
-        }
-        .height(28)
-        .padding({ left: 12, right: 12 })
-        .borderRadius(14)
-        .backgroundColor($r('app.color.chip_bg_light'))
-        .onClick(() => {
-          this.confirmClear();
-        })
-      }
-      .width('100%')
-      .height(this.topInset + 56)
-      .padding({ left: 16, right: 14, top: this.topInset })
-      .backgroundColor($r('app.color.header_material_bg'))
-      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
-
-      Column() {
-        Column() {
-          SymbolGlyph($r('sys.symbol.arrow_clockwise'))
-            .fontSize(38)
-            .fontColor([$r('app.color.brand_text')])
-        }
-        .width(76)
-        .height(76)
-        .justifyContent(FlexAlign.Center)
-        .borderRadius(20)
-        .backgroundColor($r('app.color.icon_card_bg'))
-
-        Text('登录一次，全部同步')
-          .fontSize(17)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
-          .margin({ top: 18 })
-
-        Text('课表、成绩、考试一次抓取，数据只保存在本机')
-          .fontSize(11)
-          .fontColor($r('app.color.text_hint'))
-          .textAlign(TextAlign.Center)
-          .margin({ top: 8 })
-
-        Text(this.syncLabel())
-          .fontSize(10)
-          .fontColor($r('app.color.text_faint2'))
-          .margin({ top: 10 })
-
-        Row() {
-          Text('登录教务系统并同步')
-            .fontSize(14)
-            .fontWeight(FontWeight.Medium)
-            .fontColor($r('app.color.on_brand'))
-        }
-        .padding({ left: 26, right: 26, top: 11, bottom: 11 })
-        .borderRadius(22)
-        .backgroundColor($r('app.color.header_material_bg'))
-      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
-        .margin({ top: 20 })
-        .onClick(() => {
-          this.openLogin();
-        })
-
-        Text('账号密码只在教务系统页面输入，App 不接触')
-          .fontSize(9)
-          .fontColor($r('app.color.text_faint2'))
-          .margin({ top: 14 })
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .justifyContent(FlexAlign.Center)
-      .alignItems(HorizontalAlign.Center)
-    }
-    .width('100%')
-    .height('100%')
-  }
-
   private syncLabel(): string {
     if (this.lastSyncAt === '') {
       return '还没有同步过';
@@ -1131,7 +1460,7 @@ struct Index {
       return '已同步';
     }
     const pad = (n: number): string => n < 10 ? '0' + n.toString() : n.toString();
-    return `上次同步：${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return '上次同步：' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
 
   private confirmClear(): void {
@@ -1638,8 +1967,8 @@ struct Index {
                   .fontColor($r('app.color.on_brand'))
                   .padding({ left: 6, right: 6, top: 2, bottom: 2 })
                   .borderRadius(8)
-                  .backgroundColor($r('app.color.header_material_bg'))
-      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
+                  .backgroundColor($r('app.color.brand_text'))
+
               }
             }
             .width('100%')
@@ -1766,11 +2095,11 @@ struct Index {
       .padding({ left: 26, right: 26, top: 11, bottom: 11 })
       .borderRadius(22)
       .backgroundColor($r('app.color.header_material_bg'))
-      .border({ width: { bottom: 0.5 }, color: $r('app.color.card_border') })
+      .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
+      .border({ width: 0.5, color: $r('app.color.card_border') })
       .margin({ top: 22 })
       .onClick(() => {
-        this.tab = 3;
-        this.hdsController.changeIndex(3);
+        this.openLogin();
       })
 
       Text('数据只存在本机，不经过任何服务器')
