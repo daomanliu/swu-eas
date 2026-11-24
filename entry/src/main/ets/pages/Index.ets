@@ -21,7 +21,7 @@ import {
 } from '../model/TimetableData';
 import { router, uiMaterial } from '@kit.ArkUI';
 import { webview } from '@kit.ArkWeb';
-import { HdsTabs, HdsTabsController, hdsMaterial, hdsEffect } from '@kit.UIDesignKit';
+import { HdsBarStyle, HdsTabs, HdsTabsController, hdsMaterial, hdsEffect } from '@kit.UIDesignKit';
 import { SyncPage } from './SyncPage';
 import { TimetableRepo, LoadResult, SemesterRef } from '../model/TimetableRepo';
 import { GradeItem, ExamItem } from '../model/JwSync';
@@ -74,6 +74,7 @@ struct Index {
   @State showGradeDetail: boolean = false;
   @State showLogin: boolean = false;
   @State railOpen: boolean = false;
+  @State miniExpanded: boolean = false;
   @State showAddHint: boolean = false;
   @StorageProp('backTick') @Watch('onBackTick') backTick: number = 0;
   @StorageProp('topInset') topInset: number = 0;
@@ -744,6 +745,13 @@ struct Index {
         systemMaterialEffect: {
           materialType: hdsMaterial.MaterialType.IMMERSIVE,
           materialLevel: hdsMaterial.MaterialLevel.ADAPTIVE
+        },
+        miniBar: {
+          miniBarBuilder: () => this.syncMiniBar(),
+          enableMiniBarBackground: true,
+          onBarStyleChange: (style: HdsBarStyle) => {
+            this.miniExpanded = style === HdsBarStyle.EXPAND;
+          }
         }
       })
       .onChange((index: number) => {
@@ -751,8 +759,6 @@ struct Index {
       })
       .width('100%')
       .height('100%')
-
-      this.sideRail()
 
       if (this.showLogin) {
         this.loginCover()
@@ -1112,79 +1118,68 @@ struct Index {
   }
 
   /** 右侧自适应悬浮导航：收起是圆形按钮，展开出现「立即同步」 */
+
+  /** 悬浮条上的迷你条：收起是一枚圆钮，点开变成「立即同步 / 清空数据」胶囊 */
   @Builder
-  sideRail() {
+  syncMiniBar() {
     Row() {
-      Column() {
-        if (this.railOpen) {
-          Row() {
-            SymbolGlyph($r('sys.symbol.arrow_clockwise'))
-              .fontSize(14)
-              .fontColor([$r('app.color.on_brand')])
-              .margin({ right: 6 })
+      if (this.miniExpanded) {
+        Row() {
+          SymbolGlyph($r('sys.symbol.arrow_clockwise'))
+            .fontSize(16)
+            .fontColor([$r('app.color.on_brand')])
+            .margin({ right: 6 })
+          Column() {
             Text('立即同步')
               .fontSize(13)
               .fontWeight(FontWeight.Medium)
               .fontColor($r('app.color.on_brand'))
+            Text(this.lastSyncAt === '' ? '未同步' : this.syncLabel())
+              .fontSize(9)
+              .fontColor($r('app.color.on_brand_sub'))
+              .margin({ top: 1 })
           }
-          .height(40)
-          .padding({ left: 14, right: 16 })
-          .borderRadius(20)
-          .backgroundColor($r('app.color.header_material_bg'))
-          .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
-          .border({ width: 0.5, color: $r('app.color.card_border') })
-          .margin({ bottom: 10 })
-          .onClick(() => {
-            this.railOpen = false;
-            this.openLogin();
-          })
-
-          Row() {
-            SymbolGlyph($r('sys.symbol.trash'))
-              .fontSize(13)
-              .fontColor([$r('app.color.danger2')])
-              .margin({ right: 5 })
-            Text('清空数据')
-              .fontSize(12)
-              .fontColor($r('app.color.danger2'))
-          }
-          .height(34)
-          .padding({ left: 14, right: 16 })
-          .borderRadius(17)
-          .backgroundColor($r('app.color.card_material_bg'))
-          .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
-          .border({ width: 0.5, color: $r('app.color.card_border') })
-          .margin({ bottom: 10 })
-          .onClick(() => {
-            this.railOpen = false;
-            this.confirmClear();
-          })
+          .alignItems(HorizontalAlign.Start)
         }
+        .layoutWeight(1)
+        .height(48)
+        .padding({ left: 14 })
+        .onClick(() => {
+          this.hdsController.applyMiniBarStyle(HdsBarStyle.COLLAPSE);
+          this.openLogin();
+        })
 
         Row() {
-          SymbolGlyph(this.railOpen ? $r('sys.symbol.xmark') : $r('sys.symbol.arrow_clockwise'))
-            .fontSize(18)
-            .fontColor([$r('app.color.brand_text')])
+          SymbolGlyph($r('sys.symbol.trash'))
+            .fontSize(15)
+            .fontColor([$r('app.color.danger2')])
         }
-        .width(44)
-        .height(44)
+        .width(40)
+        .height(48)
         .justifyContent(FlexAlign.Center)
-        .borderRadius(22)
-        .backgroundColor($r('app.color.card_material_bg'))
-        .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
-        .border({ width: 0.5, color: $r('app.color.card_border') })
         .onClick(() => {
-          this.railOpen = !this.railOpen;
+          this.hdsController.applyMiniBarStyle(HdsBarStyle.COLLAPSE);
+          this.confirmClear();
+        })
+      } else {
+        Row() {
+          SymbolGlyph($r('sys.symbol.arrow_clockwise'))
+            .fontSize(20)
+            .fontColor([$r('app.color.on_brand')])
+        }
+        .width(48)
+        .height(48)
+        .justifyContent(FlexAlign.Center)
+        .onClick(() => {
+          this.hdsController.applyMiniBarStyle(HdsBarStyle.EXPAND);
         })
       }
-      .alignItems(HorizontalAlign.End)
-      .margin({ right: 12, bottom: 96 })
     }
-    .width('100%')
-    .height('100%')
-    .justifyContent(FlexAlign.End)
-    .alignItems(VerticalAlign.Bottom)
-    .padding({ bottom: this.bottomInset })
+    .height(48)
+    .borderRadius(24)
+    .backgroundColor($r('app.color.header_material_bg'))
+    .border({ width: 0.5, color: $r('app.color.card_border') })
+    .clip(true)
   }
 
   @Builder
