@@ -1126,24 +1126,24 @@ struct Index {
       if (this.miniExpanded) {
         Row() {
           SymbolGlyph($r('sys.symbol.arrow_clockwise'))
-            .fontSize(16)
+            .fontSize(18)
             .fontColor([$r('app.color.brand_text')])
-            .margin({ right: 6 })
+            .margin({ right: 8 })
           Column() {
             Text('立即同步')
-              .fontSize(13)
+              .fontSize(14)
               .fontWeight(FontWeight.Medium)
               .fontColor($r('app.color.text_primary'))
             Text(this.lastSyncAt === '' ? '未同步' : this.syncLabel())
-              .fontSize(9)
+              .fontSize(10)
               .fontColor($r('app.color.text_hint'))
               .margin({ top: 1 })
           }
           .alignItems(HorizontalAlign.Start)
         }
         .layoutWeight(1)
-        .height(48)
-        .padding({ left: 14 })
+        .height(60)
+        .padding({ left: 16 })
         .onClick(() => {
           this.hdsController.applyMiniBarStyle(HdsBarStyle.COLLAPSE);
           this.openLogin();
@@ -1151,11 +1151,11 @@ struct Index {
 
         Row() {
           SymbolGlyph($r('sys.symbol.trash'))
-            .fontSize(15)
+            .fontSize(17)
             .fontColor([$r('app.color.danger2')])
         }
-        .width(40)
-        .height(48)
+        .width(48)
+        .height(60)
         .justifyContent(FlexAlign.Center)
         .onClick(() => {
           this.hdsController.applyMiniBarStyle(HdsBarStyle.COLLAPSE);
@@ -1164,19 +1164,19 @@ struct Index {
       } else {
         Row() {
           SymbolGlyph($r('sys.symbol.arrow_clockwise'))
-            .fontSize(20)
+            .fontSize(22)
             .fontColor([$r('app.color.brand_text')])
         }
-        .width(48)
-        .height(48)
+        .width(60)
+        .height(60)
         .justifyContent(FlexAlign.Center)
         .onClick(() => {
           this.hdsController.applyMiniBarStyle(HdsBarStyle.EXPAND);
         })
       }
     }
-    .height(48)
-    .borderRadius(24)
+    .height(60)
+    .borderRadius(30)
     .backgroundColor($r('app.color.card_material_bg'))
     .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
     .border({ width: 0.5, color: $r('app.color.card_border') })
