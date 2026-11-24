@@ -1,4 +1,5 @@
 import { webview } from '@kit.ArkWeb';
+import { uiMaterial } from '@kit.ArkUI';
 import { common } from '@kit.AbilityKit';
 import { TimetableRepo, SemesterRef, SemesterIndex, SyncedSemester } from '../model/TimetableRepo';
 import { JwSync, SyncedSemesterData, GradeItem, ExamItem } from '../model/JwSync';
@@ -20,6 +21,8 @@ export struct SyncPage {
   onDone: () => void = () => {};
 
   @StorageProp('topInset') topInset: number = 0;
+  @State materialOk: boolean = false;
+  private material: uiMaterial.ImmersiveMaterial | undefined = undefined;
 
   // 用 AppStorage 承载，宿主重建组件时结果页不会丢
   @StorageLink('syncStatus') status: string = '登录完成后，点下方按钮同步';
@@ -41,6 +44,14 @@ export struct SyncPage {
   private failedCookie: string = '';
 
   aboutToAppear(): void {
+    try {
+      if (uiMaterial.isImmersiveMaterialSupported()) {
+        this.material = new uiMaterial.ImmersiveMaterial();
+        this.materialOk = true;
+      }
+    } catch (err) {
+      this.materialOk = false;
+    }
     this.persistCookies();
   }
 
@@ -297,9 +308,8 @@ export struct SyncPage {
         .height(28)
         .padding({ left: 12, right: 12 })
         .borderRadius(14)
-        .backgroundColor($r('app.color.header_material_bg'))
-        .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
-        .border({ width: 0.5, color: $r('app.color.card_border') })
+        .backgroundColor(this.materialOk ? Color.Transparent : $r('app.color.header_material_bg'))
+        .systemMaterial(this.materialOk ? this.material : undefined)
         .onClick(() => {
           this.onClose();
         })
@@ -333,9 +343,8 @@ export struct SyncPage {
           }
           .padding({ left: 34, right: 34, top: 11, bottom: 11 })
           .borderRadius(22)
-          .backgroundColor($r('app.color.header_material_bg'))
-          .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
-          .border({ width: 0.5, color: $r('app.color.card_border') })
+          .backgroundColor(this.materialOk ? Color.Transparent : $r('app.color.header_material_bg'))
+          .systemMaterial(this.materialOk ? this.material : undefined)
           .margin({ top: 22 })
           .onClick(() => {
             this.onDone();
@@ -348,9 +357,8 @@ export struct SyncPage {
           }
           .padding({ left: 22, right: 22, top: 9, bottom: 9 })
           .borderRadius(18)
-          .backgroundColor($r('app.color.card_material_bg'))
-          .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
-          .border({ width: 0.5, color: $r('app.color.card_border') })
+          .backgroundColor(this.materialOk ? Color.Transparent : $r('app.color.card_material_bg'))
+          .systemMaterial(this.materialOk ? this.material : undefined)
           .margin({ top: 10 })
           .onClick(() => {
             this.done = false;

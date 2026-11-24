@@ -2197,9 +2197,9 @@ struct Index {
       }
       .padding({ left: 26, right: 26, top: 11, bottom: 11 })
       .borderRadius(22)
-      .backgroundColor($r('app.color.header_material_bg'))
-      .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
-      .border({ width: 0.5, color: $r('app.color.card_border') })
+      .backgroundColor(this.materialOk ? Color.Transparent : $r('app.color.header_material_bg'))
+      .systemMaterial(this.materialOk ? this.material : undefined)
+      .border({ width: this.materialOk ? 0 : 0.5, color: $r('app.color.card_border') })
       .margin({ top: 22 })
       .onClick(() => {
         this.openLogin();
