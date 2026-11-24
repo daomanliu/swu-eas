@@ -748,7 +748,7 @@ struct Index {
         },
         miniBar: {
           miniBarBuilder: () => this.syncMiniBar(),
-          enableMiniBarBackground: true,
+          enableMiniBarBackground: false,
           onBarStyleChange: (style: HdsBarStyle) => {
             this.miniExpanded = style === HdsBarStyle.EXPAND;
           }
@@ -1127,16 +1127,16 @@ struct Index {
         Row() {
           SymbolGlyph($r('sys.symbol.arrow_clockwise'))
             .fontSize(16)
-            .fontColor([$r('app.color.on_brand')])
+            .fontColor([$r('app.color.brand_text')])
             .margin({ right: 6 })
           Column() {
             Text('立即同步')
               .fontSize(13)
               .fontWeight(FontWeight.Medium)
-              .fontColor($r('app.color.on_brand'))
+              .fontColor($r('app.color.text_primary'))
             Text(this.lastSyncAt === '' ? '未同步' : this.syncLabel())
               .fontSize(9)
-              .fontColor($r('app.color.on_brand_sub'))
+              .fontColor($r('app.color.text_hint'))
               .margin({ top: 1 })
           }
           .alignItems(HorizontalAlign.Start)
@@ -1165,7 +1165,7 @@ struct Index {
         Row() {
           SymbolGlyph($r('sys.symbol.arrow_clockwise'))
             .fontSize(20)
-            .fontColor([$r('app.color.on_brand')])
+            .fontColor([$r('app.color.brand_text')])
         }
         .width(48)
         .height(48)
@@ -1177,7 +1177,8 @@ struct Index {
     }
     .height(48)
     .borderRadius(24)
-    .backgroundColor($r('app.color.header_material_bg'))
+    .backgroundColor($r('app.color.card_material_bg'))
+    .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
     .border({ width: 0.5, color: $r('app.color.card_border') })
     .clip(true)
   }
