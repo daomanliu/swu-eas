@@ -19,7 +19,8 @@ import {
   guessSemesterStart,
   todayIndex
 } from '../model/TimetableData';
-import { router, uiMaterial } from '@kit.ArkUI';
+import { AddFormMenuItem, promptAction, router, uiMaterial } from '@kit.ArkUI';
+import formBindingData from '@ohos.app.form.formBindingData';
 import { webview } from '@kit.ArkWeb';
 import { HdsBarStyle, HdsTabs, HdsTabsController, hdsMaterial, hdsEffect } from '@kit.UIDesignKit';
 import { SyncPage } from './SyncPage';
@@ -910,30 +911,38 @@ struct Index {
             Column() {
               this.nowCard()
             }
-            .gesture(LongPressGesture().onAction(() => {
-              this.showAddHint = true;
-            }))
+            .bindContextMenu(this.cardAddMenu, ResponseType.LongPress, {
+              placement: Placement.BottomRight,
+              preview: MenuPreviewMode.NONE,
+              mask: { color: '#26000000', backgroundBlurStyle: BlurStyle.BACKGROUND_THIN }
+            })
 
             Column() {
               this.nextExamCard()
             }
-            .gesture(LongPressGesture().onAction(() => {
-              this.showAddHint = true;
-            }))
+            .bindContextMenu(this.cardAddMenu, ResponseType.LongPress, {
+              placement: Placement.BottomRight,
+              preview: MenuPreviewMode.NONE,
+              mask: { color: '#26000000', backgroundBlurStyle: BlurStyle.BACKGROUND_THIN }
+            })
 
             Column() {
               this.coreGpaCard()
             }
-            .gesture(LongPressGesture().onAction(() => {
-              this.showAddHint = true;
-            }))
+            .bindContextMenu(this.cardAddMenu, ResponseType.LongPress, {
+              placement: Placement.BottomRight,
+              preview: MenuPreviewMode.NONE,
+              mask: { color: '#26000000', backgroundBlurStyle: BlurStyle.BACKGROUND_THIN }
+            })
 
             Column() {
               this.weekListCard()
             }
-            .gesture(LongPressGesture().onAction(() => {
-              this.showAddHint = true;
-            }))
+            .bindContextMenu(this.cardAddMenu, ResponseType.LongPress, {
+              placement: Placement.BottomRight,
+              preview: MenuPreviewMode.NONE,
+              mask: { color: '#26000000', backgroundBlurStyle: BlurStyle.BACKGROUND_THIN }
+            })
 
             Text('长按卡片可查看添加到桌面 / 负一屏的方法')
               .fontSize(9)
@@ -951,16 +960,35 @@ struct Index {
     }
     .width('100%')
     .height('100%')
-    .bindSheet(this.showAddHint, this.addHintSheet(), {
-      height: SheetSize.FIT_CONTENT,
-      dragBar: true,
-      showClose: false,
-      backgroundColor: $r('app.color.sheet_bg'),
-      blurStyle: BlurStyle.COMPONENT_THICK,
-      onDisappear: () => {
-        this.showAddHint = false;
-      }
-    })
+  }
+
+  /** 长按卡片 → 系统「添加到桌面」菜单项 */
+  @Builder
+  cardAddMenu() {
+    Menu() {
+      AddFormMenuItem(
+        {
+          bundleName: this.ctxOrNull() === null ? 'com.daomanliu.eas' : (this.ctxOrNull() as common.UIAbilityContext).abilityInfo.bundleName,
+          abilityName: 'EntryFormAbility',
+          parameters: {
+            'ohos.extra.param.key.form_dimension': 3,
+            'ohos.extra.param.key.form_name': 'TimetableCard',
+            'ohos.extra.param.key.module_name': 'entry'
+          }
+        },
+        '添加到桌面',
+        {
+          formBindingData: formBindingData.createFormBindingData({}),
+          callback: (err, formId) => {
+            if (err && err.code === 0) {
+              this.getUIContext().getPromptAction().showToast({ message: '已添加到桌面' });
+            } else {
+              this.getUIContext().getPromptAction().showToast({ message: '添加失败，可在桌面长按空白处添加' });
+            }
+          }
+        }
+      )
+    }
   }
 
   @Builder
