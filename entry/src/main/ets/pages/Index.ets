@@ -736,13 +736,13 @@ struct Index {
       }
       .barOverlap(true)
       .barPosition(BarPosition.End)
-      .barBackgroundColor(Color.Transparent)
-      .barBackgroundBlurStyle(BlurStyle.NONE)
+      .vertical(false)
       .barFloatingStyle({
-        barSideMargin: 16,
-        barBottomMargin: this.bottomInset + 6,
+        barSideMargin: 12,
+        barBottomMargin: this.bottomInset + 10,
+        adaptToHandedness: true,
         systemMaterialEffect: {
-          materialType: hdsMaterial.MaterialType.ADAPTIVE,
+          materialType: hdsMaterial.MaterialType.IMMERSIVE,
           materialLevel: hdsMaterial.MaterialLevel.ADAPTIVE
         }
       })
@@ -1178,7 +1178,7 @@ struct Index {
         })
       }
       .alignItems(HorizontalAlign.End)
-      .margin({ right: 10, bottom: 96 })
+      .margin({ right: 12, bottom: 96 })
     }
     .width('100%')
     .height('100%')
