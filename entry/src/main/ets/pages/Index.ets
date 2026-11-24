@@ -1088,6 +1088,7 @@ struct Index {
     .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
     .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(12)
+    .visualEffect(this.cardLight)
     .margin({ left: 12, right: 12, top: 10 })
   }
 
@@ -1148,6 +1149,7 @@ struct Index {
     .backgroundColor($r('app.color.card_material_bg'))
     .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
     .border({ width: 0.5, color: $r('app.color.card_border') })
+    .visualEffect(this.cardLight)
     .borderRadius(12)
     .margin({ left: 12, right: 12, top: 10 })
   }
@@ -1226,6 +1228,7 @@ struct Index {
     .padding(14)
     .backgroundColor($r('app.color.card_material_bg'))
     .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
+    .visualEffect(this.cardLight)
     .border({ width: 0.5, color: $r('app.color.card_border') })
     .borderRadius(12)
     .margin({ left: 12, right: 12, top: 10 })
