@@ -976,7 +976,7 @@ struct Index {
             'ohos.extra.param.key.module_name': 'entry'
           }
         },
-        '添加到桌面',
+        'TimetableCard',
         {
           formBindingData: formBindingData.createFormBindingData({}),
           callback: (err, formId) => {

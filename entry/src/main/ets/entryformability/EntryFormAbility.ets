@@ -20,6 +20,7 @@ const KEY_FORM_IDS: string = 'widget_form_ids';
 export default class EntryFormAbility extends FormExtensionAbility {
   onAddForm(want: Want): formBindingData.FormBindingData {
     const formId: string = EntryFormAbility.formIdOf(want);
+    hilog.info(DOMAIN, TAG, 'onAddForm formId=%{public}s', formId);
     // 先记下 formId 再把真实数据推过去，同步读首选项这里来不及
     this.refreshForm(formId);
     return formBindingData.createFormBindingData(FormData.emptyJson());
