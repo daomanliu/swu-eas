@@ -20,12 +20,17 @@ import {
   todayIndex
 } from '../model/TimetableData';
 import { AddFormMenuItem, promptAction, router, uiMaterial } from '@kit.ArkUI';
+import { hilog } from '@kit.PerformanceAnalysisKit';
 import formBindingData from '@ohos.app.form.formBindingData';
 import { webview } from '@kit.ArkWeb';
 import { HdsBarStyle, HdsTabs, HdsTabsController, hdsMaterial, hdsEffect } from '@kit.UIDesignKit';
 import { SyncPage } from './SyncPage';
+import EntryFormAbility from '../entryformability/EntryFormAbility';
 import { TimetableRepo, LoadResult, SemesterRef } from '../model/TimetableRepo';
 import { GradeItem, ExamItem } from '../model/JwSync';
+
+const DOMAIN: number = 0x0E00;
+const TAG: string = 'TimetableCard';
 
 interface Slot {
   period: number;
@@ -221,6 +226,12 @@ struct Index {
   onPageShow(): void {
     if (this.inited) {
       this.reload();
+    }
+    // 回到前台顺手刷新桌面卡片，避免卡片停留在上次推送时的状态
+    const ctx: common.UIAbilityContext | null = this.ctxOrNull();
+    if (ctx !== null) {
+      EntryFormAbility.push(ctx).catch(() => {
+      });
     }
   }
 
@@ -911,7 +922,8 @@ struct Index {
             Column() {
               this.nowCard()
             }
-            .bindContextMenu(this.cardAddMenu, ResponseType.LongPress, {
+            .id('card_now')
+            .bindContextMenu(this.cardAddMenuNow, ResponseType.LongPress, {
               placement: Placement.BottomRight,
               preview: MenuPreviewMode.NONE,
               mask: { color: '#26000000', backgroundBlurStyle: BlurStyle.BACKGROUND_THIN }
@@ -920,7 +932,8 @@ struct Index {
             Column() {
               this.nextExamCard()
             }
-            .bindContextMenu(this.cardAddMenu, ResponseType.LongPress, {
+            .id('card_exam')
+            .bindContextMenu(this.cardAddMenuExam, ResponseType.LongPress, {
               placement: Placement.BottomRight,
               preview: MenuPreviewMode.NONE,
               mask: { color: '#26000000', backgroundBlurStyle: BlurStyle.BACKGROUND_THIN }
@@ -929,7 +942,8 @@ struct Index {
             Column() {
               this.coreGpaCard()
             }
-            .bindContextMenu(this.cardAddMenu, ResponseType.LongPress, {
+            .id('card_gpa')
+            .bindContextMenu(this.cardAddMenuGpa, ResponseType.LongPress, {
               placement: Placement.BottomRight,
               preview: MenuPreviewMode.NONE,
               mask: { color: '#26000000', backgroundBlurStyle: BlurStyle.BACKGROUND_THIN }
@@ -938,7 +952,8 @@ struct Index {
             Column() {
               this.weekListCard()
             }
-            .bindContextMenu(this.cardAddMenu, ResponseType.LongPress, {
+            .id('card_week')
+            .bindContextMenu(this.cardAddMenuWeek, ResponseType.LongPress, {
               placement: Placement.BottomRight,
               preview: MenuPreviewMode.NONE,
               mask: { color: '#26000000', backgroundBlurStyle: BlurStyle.BACKGROUND_THIN }
@@ -962,9 +977,33 @@ struct Index {
     .height('100%')
   }
 
-  /** 长按卡片 → 系统「添加到桌面」菜单项 */
+  /** 长按「现在上课」卡片 → 系统「添加到桌面」菜单项 */
   @Builder
-  cardAddMenu() {
+  cardAddMenuNow() {
+    this.addFormMenu('card_now')
+  }
+
+  /** 长按「下一场考试」卡片 → 系统「添加到桌面」菜单项 */
+  @Builder
+  cardAddMenuExam() {
+    this.addFormMenu('card_exam')
+  }
+
+  /** 长按「核心绩点」卡片 → 系统「添加到桌面」菜单项 */
+  @Builder
+  cardAddMenuGpa() {
+    this.addFormMenu('card_gpa')
+  }
+
+  /** 长按「本周课表」卡片 → 系统「添加到桌面」菜单项 */
+  @Builder
+  cardAddMenuWeek() {
+    this.addFormMenu('card_week')
+  }
+
+  /** 4 个卡片共用的 AddFormMenuItem 构建体，compId 必须与对应 Column 的 .id() 一致 */
+  @Builder
+  addFormMenu(compId: string) {
     Menu() {
       AddFormMenuItem(
         {
@@ -976,10 +1015,11 @@ struct Index {
             'ohos.extra.param.key.module_name': 'entry'
           }
         },
-        'TimetableCard',
+        compId,
         {
           formBindingData: formBindingData.createFormBindingData({}),
           callback: (err, formId) => {
+            hilog.info(DOMAIN, TAG, 'AddFormMenuItem callback: compId=%{public}s, err=%{public}s, formId=%{public}s', compId, JSON.stringify(err), formId);
             if (err && err.code === 0) {
               this.getUIContext().getPromptAction().showToast({ message: '已添加到桌面' });
             } else {

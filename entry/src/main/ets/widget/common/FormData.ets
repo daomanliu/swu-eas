@@ -236,9 +236,9 @@ export class FormData {
     data.coursePlace = c.location === '' ? '地点待定' : c.location;
     // 上课时间直接取 PERIODS 里的 HH:mm，不再自己解析
     data.courseTime = PERIODS[c.start - 1].start;
-    data.courseRemain = item.kind === 'now'
-      ? `距下课 ${humanDuration(item.minutes)}`
-      : `还有 ${humanDuration(item.minutes)}`;
+    // 卡片由系统按 updateDuration 刷新（最小 30 分钟），"还有 X 分钟"会很快过期，
+    // 这里只给与分钟无关的提示，精确剩余时间在应用内展示
+    data.courseRemain = item.kind === 'now' ? '正在上课' : '即将开始';
     if (item.kind === 'now' || item.dayOffset === 0) {
       data.courseWhen = '今天';
     } else if (item.dayOffset === 1) {
@@ -303,7 +303,7 @@ export class FormData {
       return;
     }
     const days: number = Math.round((sch.day.getTime() - today.getTime()) / DAY_MS);
-    data.examRemain = days <= 0 ? '就在今天' : `还有 ${days} 天`;
+    data.examRemain = days <= 0 ? '就在今天' : `${days} 天后`;
   }
 
   /** "2027-01-06(19:00-21:00)" -> 日期 + 时段（HH:mm 用 TimetableData.minutesOf 换算） */
