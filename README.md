@@ -59,6 +59,11 @@ hvigorw assembleHap --mode module -p product=default
 - 不会上传任何数据到第三方服务器，账号密码只在学校官方登录页输入
 - 使用前请自行确认符合学校相关管理规定
 
+## 欢迎参与
+
+发现 bug 或想加功能，欢迎提 Issue 或直接 fork。
+这个项目随时接受更好的实现，不必先问。
+
 ## License
 
 MIT
