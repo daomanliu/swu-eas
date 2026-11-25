@@ -1,6 +1,6 @@
 /**
  * 课程表数据类型与纯函数（不含 IO）
- * 运行时数据来自 resources/rawfile/timetable.json，由 tools/sync-timetable.mjs 生成
+ * 运行时数据来自 preferences（timetable_store），由 JwSync 从教务接口抓取后写入
  */
 
 export interface Period {
