@@ -313,13 +313,13 @@ export struct SyncPage {
         Row() {
           Text('关闭')
             .fontSize(12)
-            .fontColor($r('app.color.brand_text'))
+            .fontColor($r('app.color.on_brand'))
         }
         .height(28)
         .padding({ left: 12, right: 12 })
         .borderRadius(14)
-        .backgroundColor(this.materialOk ? Color.Transparent : $r('app.color.header_material_bg'))
-        .systemMaterial(this.materialOk ? this.material : undefined)
+        .backgroundColor('#33FFFFFF')
+        .border({ width: 0.5, color: '#59FFFFFF' })
         .onClick(() => {
           this.onClose();
         })
