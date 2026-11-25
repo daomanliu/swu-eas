@@ -346,7 +346,7 @@ export struct SyncPage {
             .textAlign(TextAlign.Center)
 
           Row() {
-            Text('查看课表')
+            Text('返回首页')
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
               .fontColor($r('app.color.on_brand'))
