@@ -10,18 +10,17 @@
 
 <table>
   <tr>
-    <td align="center"><img src="/screenshot/首页.jpg" alt="首页" width="300"></td>
-    <td align="center"><img src="/screenshot/课表.jpg" alt="课表" width="300"></td>
+    <td align="center"><img src="/screenshot/首页.jpg" alt="首页" width="260"></td>
+    <td align="center"><img src="/screenshot/课表.jpg" alt="课表" width="260"></td>
+    <td align="center"><img src="/screenshot/成绩.jpg" alt="成绩" width="260"></td>
   </tr>
   <tr>
-    <td align="center"><img src="/screenshot/成绩.jpg" alt="成绩" width="300"></td>
-    <td align="center"><img src="/screenshot/考试.jpg" alt="考试" width="300"></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="/screenshot/同步.jpg" alt="同步" width="300"></td>
-    <td align="center"><img src="/screenshot/卡片展示.jpg" alt="卡片展示" width="300"></td>
+    <td align="center"><img src="/screenshot/考试.jpg" alt="考试" width="260"></td>
+    <td align="center"><img src="/screenshot/同步.jpg" alt="同步" width="260"></td>
+    <td align="center"><img src="/screenshot/卡片展示.jpg" alt="卡片展示" width="260"></td>
   </tr>
 </table>
+
 
 ## 功能
 
