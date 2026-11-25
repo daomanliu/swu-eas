@@ -11,4 +11,7 @@
 **/.test
 /.appanalyzer
 /screenshot
-/uitree*.log
+/uitree
+*.log
+build.log
+build2.log

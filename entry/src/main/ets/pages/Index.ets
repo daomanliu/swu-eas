@@ -82,7 +82,6 @@ struct Index {
   @State showLogin: boolean = false;
   @State railOpen: boolean = false;
   @State miniExpanded: boolean = false;
-  @State showAddHint: boolean = false;
   @StorageProp('backTick') @Watch('onBackTick') backTick: number = 0;
   @StorageProp('topInset') topInset: number = 0;
   @StorageProp('bottomInset') bottomInset: number = 0;
@@ -1046,40 +1045,6 @@ struct Index {
     }
   }
 
-  @Builder
-  addHintSheet() {
-    Column() {
-      Text('添加到桌面 / 负一屏')
-        .fontSize(17)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_strong'))
-
-      Text('1. 回到桌面，长按空白处')
-        .fontSize(13)
-        .fontColor($r('app.color.text_secondary'))
-        .width('100%')
-        .margin({ top: 14 })
-      Text('2. 点「服务卡片」，找到 SWU教务')
-        .fontSize(13)
-        .fontColor($r('app.color.text_secondary'))
-        .width('100%')
-        .margin({ top: 8 })
-      Text('3. 把卡片拖到桌面；负一屏在桌面最左侧一屏')
-        .fontSize(13)
-        .fontColor($r('app.color.text_secondary'))
-        .width('100%')
-        .margin({ top: 8 })
-
-      Text('卡片会展示下一节课和下一场考试，数据随应用同步自动刷新')
-        .fontSize(10)
-        .fontColor($r('app.color.text_faint2'))
-        .width('100%')
-        .margin({ top: 14 })
-    }
-    .width('100%')
-    .alignItems(HorizontalAlign.Start)
-    .padding({ left: 18, right: 18, top: 6, bottom: 28 })
-  }
 
   @Builder
   nextExamCard() {
