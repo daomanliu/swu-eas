@@ -6,6 +6,14 @@
 >
 > 作者：[@daomanliu](https://github.com/daomanliu)
 
+## 截屏展示
+<img src="/screenshot/首页.jpg" alt="首页" width="300">
+<img src="/screenshot/课表.jpg" alt="课表" width="300">
+<img src="/screenshot/成绩.jpg" alt="成绩" width="300">
+<img src="/screenshot/考试.jpg" alt="考试" width="300">
+<img src="/screenshot/同步.jpg" alt="同步" width="300">
+<img src="/screenshot/卡片展示.jpg" alt="卡片展示" width="300">
+
 ## 功能
 
 | 模块 | 说明 |

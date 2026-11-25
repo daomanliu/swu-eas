@@ -10,7 +10,6 @@
 /.clang-tidy
 **/.test
 /.appanalyzer
-/screenshot
 /uitree
 *.log
 build.log
