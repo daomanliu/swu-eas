@@ -10,6 +10,7 @@ const RAWFILE: string = 'timetable.json';
 const KEY_INDEX: string = 'semesters_index';
 const KEY_LAST_SYNC: string = 'last_sync_at';
 const KEY_GRADES: string = 'grades_json';
+const KEY_ACADEMIC: string = 'academic_json';
 const KEY_EXAMS: string = 'exams_json';
 
 /** App 内同步得到的一个学期数据 */
@@ -265,6 +266,25 @@ export class TimetableRepo {
     }
   }
 
+  /** 学业情况（学分汇总）落盘 */
+  static async saveAcademic(ctx: common.UIAbilityContext, json: string): Promise<boolean> {
+    const store: preferences.Preferences | null = await TimetableRepo.openStore(ctx);
+    if (store === null) {
+      return false;
+    }
+    try {
+      store.putSync(KEY_ACADEMIC, json);
+      await store.flush();
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  static async loadAcademic(ctx: common.UIAbilityContext): Promise<string> {
+    return TimetableRepo.readPref(ctx, KEY_ACADEMIC);
+  }
+
   static async loadGrades(ctx: common.UIAbilityContext): Promise<string> {
     return TimetableRepo.readPref(ctx, KEY_GRADES);
   }
@@ -310,6 +330,7 @@ export class TimetableRepo {
       store.deleteSync(KEY_LAST_SYNC);
       store.deleteSync(KEY_GRADES);
       store.deleteSync(KEY_EXAMS);
+      store.deleteSync(KEY_ACADEMIC);
       const all: Object = store.getAllSync();
       const keys: string[] = Object.keys(all);
       for (let i: number = 0; i < keys.length; i++) {

@@ -4,6 +4,9 @@ import { Course, LooseCourse, TimetableSnapshot, Period, PERIODS } from './Timet
 
 const JW_HOST: string = 'https://jw.swu.edu.cn';
 const KB_API: string = 'https://jw.swu.edu.cn/jwglxt/kbcx/xskbcx_cxXsgrkb.html?gnmkdm=N253508';
+/** 学业情况查询页面（服务端渲染，学分数据内嵌在 HTML） */
+const XSXY_PAGE: string =
+  'https://jw.swu.edu.cn/jwglxt/xsxy/xsxyqk_cxXsxyqkIndex.html?echarts=1&gnmkdm=N105515&layout=default';
 
 /** 教务接口返回的原始条目（只取用到的字段） */
 interface ApiKbItem {
@@ -39,6 +42,20 @@ interface ApiResp {
   xsxx: ApiXsxx;
   kbList: ApiKbItem[];
   sjkList: ApiSjkItem[];
+}
+
+/** 学业情况：一个课程类别 */
+export interface AcademicCategory {
+  name: string;
+  earned: number;
+  required: number;
+}
+
+/** 学业情况汇总 */
+export interface AcademicSummary {
+  earned: number;
+  required: number;
+  categories: AcademicCategory[];
 }
 
 /** 一条成绩 */
@@ -429,6 +446,64 @@ export class JwSync {
     return out;
   }
 
+
+  /**
+   * 学业情况查询（N105515）：页面是服务端渲染，学分数据内嵌在 HTML 里
+   * 主修：最低毕业学分 150 / 已获得总学分 55.0
+   * 各类别：yxxf（已获得）yqzdxf（要求）后的类别名
+   */
+  static async fetchAcademic(cookie: string): Promise<AcademicSummary> {
+    const req: http.HttpRequest = http.createHttp();
+    try {
+      const resp: http.HttpResponse = await req.request(XSXY_PAGE, {
+        method: http.RequestMethod.GET,
+        header: {
+          'Cookie': cookie,
+          'Referer': 'https://jw.swu.edu.cn/jwglxt/xtgl/index_initMenu.html'
+        },
+        expectDataType: http.HttpDataType.STRING,
+        connectTimeout: 15000,
+        readTimeout: 25000
+      });
+      if (resp.responseCode === 901) {
+        throw new Error('EXPIRED');
+      }
+      if (resp.responseCode !== 200) {
+        throw new Error('学业查询失败 ' + resp.responseCode.toString());
+      }
+      return JwSync.parseAcademic(resp.result as string);
+    } finally {
+      req.destroy();
+    }
+  }
+
+  /** 从学业情况页面 HTML 里抠出学分汇总 */
+  static parseAcademic(html: string): AcademicSummary {
+    const out: AcademicSummary = { earned: 0, required: 0, categories: [] };
+
+    const total: RegExpMatchArray | null = html.match(/已获得总学分：([0-9.]+)/);
+    if (total !== null) {
+      out.earned = Number(total[1]);
+    }
+    const need: RegExpMatchArray | null = html.match(/最低毕业学分:([0-9.]+)/);
+    if (need !== null) {
+      out.required = Number(need[1]);
+    }
+
+    // 每个类别都会在多个分支里重复出现，用 Map 去重
+    const seen: Map<string, boolean> = new Map<string, boolean>();
+    const re: RegExp = /yxxf='([0-9.]+)'\s+yqzdxf='([0-9.]+)'[^>]*>"\s*\+\s*"([^&"<]+)/g;
+    let m: RegExpExecArray | null = re.exec(html);
+    while (m !== null) {
+      const name: string = m[3].trim();
+      if (name !== '' && !seen.has(name)) {
+        seen.set(name, true);
+        out.categories.push({ name: name, earned: Number(m[1]), required: Number(m[2]) });
+      }
+      m = re.exec(html);
+    }
+    return out;
+  }
   /** 拉最近两个学年、共 4 个学期 */
   static async fetchAll(cookie: string): Promise<SyncedSemesterData[]> {
     const out: SyncedSemesterData[] = [];

@@ -27,7 +27,7 @@ import { HdsBarStyle, HdsTabs, HdsTabsController, hdsMaterial, hdsEffect } from 
 import { SyncPage } from './SyncPage';
 import EntryFormAbility from '../entryformability/EntryFormAbility';
 import { TimetableRepo, LoadResult, SemesterRef } from '../model/TimetableRepo';
-import { GradeItem, ExamItem } from '../model/JwSync';
+import { GradeItem, ExamItem, AcademicSummary, AcademicCategory } from '../model/JwSync';
 
 const DOMAIN: number = 0x0E00;
 const TAG: string = 'TimetableCard';
@@ -71,6 +71,7 @@ struct Index {
   @State tab: number = 0;
   @State grades: GradeItem[] = [];
   @State exams: ExamItem[] = [];
+  @State academic: AcademicSummary | null = null;
   @State gradeTerm: string = '';
   @State examTerm: string = '';
   @State showGradeTerm: boolean = false;
@@ -271,6 +272,14 @@ struct Index {
         this.exams = JSON.parse(examsJson) as ExamItem[];
       } catch (err) {
         this.exams = [];
+      }
+    }
+    const academicJson: string = await TimetableRepo.loadAcademic(ctx);
+    if (academicJson !== '') {
+      try {
+        this.academic = JSON.parse(academicJson) as AcademicSummary;
+      } catch (err) {
+        this.academic = null;
       }
     }
     this.resetDefaultTerms();
@@ -891,24 +900,13 @@ struct Index {
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)
 
-        Row() {
-          Text(this.semester === '' ? '未同步' : this.semester)
-            .fontSize(10)
-            .fontColor($r('app.color.on_brand_chip_text'))
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-          SymbolGlyph($r('sys.symbol.chevron_down'))
-            .fontSize(9)
-            .fontColor([$r('app.color.on_brand_chip_text')])
-            .margin({ left: 3 })
-        }
-        .constraintSize({ maxWidth: 150 })
-        .padding({ left: 10, right: 8, top: 6, bottom: 6 })
-        .borderRadius(13)
-        .backgroundColor($r('app.color.on_brand_chip'))
-        .onClick(() => {
-          this.showSemester = true;
-        })
+        Text(this.semester === '' ? '' : this.semester)
+          .fontSize(10)
+          .fontColor($r('app.color.on_brand_sub2'))
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .constraintSize({ maxWidth: 150 })
+          .textAlign(TextAlign.End)
       }
       .width('100%')
       .padding({ left: 16, right: 14, top: this.topInset + 14, bottom: 12 })
@@ -943,6 +941,15 @@ struct Index {
               this.coreGpaCard()
             }
             .id('card_gpa')
+            .bindContextMenu(this.cardAddMenuGpa, ResponseType.LongPress, {
+              placement: Placement.BottomRight,
+              preview: MenuPreviewMode.NONE,
+              mask: { color: '#26000000', backgroundBlurStyle: BlurStyle.BACKGROUND_THIN }
+            })
+
+            Column() {
+              this.academicCard()
+            }
             .bindContextMenu(this.cardAddMenuGpa, ResponseType.LongPress, {
               placement: Placement.BottomRight,
               preview: MenuPreviewMode.NONE,
@@ -1195,6 +1202,81 @@ struct Index {
   }
 
   /** 右侧自适应悬浮导航：收起是圆形按钮，展开出现「立即同步」 */
+
+  private academicPct(): number {
+    if (this.academic === null || this.academic.required <= 0) {
+      return 0;
+    }
+    const p: number = (this.academic as AcademicSummary).earned / (this.academic as AcademicSummary).required * 100;
+    return Math.max(0, Math.min(100, p));
+  }
+
+  @Builder
+  academicCard() {
+    Column() {
+      Row() {
+        Text('学业进度')
+          .fontSize(10)
+          .fontColor($r('app.color.on_brand'))
+          .padding({ left: 8, right: 8, top: 3, bottom: 3 })
+          .borderRadius(8)
+          .backgroundColor($r('app.color.brand_text'))
+        Blank()
+        if (this.academic !== null) {
+          Text((this.academic as AcademicSummary).earned.toFixed(1) + ' / ' +
+            (this.academic as AcademicSummary).required.toFixed(0) + ' 学分')
+            .fontSize(10)
+            .fontColor($r('app.color.text_hint'))
+        }
+      }
+      .width('100%')
+
+      if (this.academic === null) {
+        Text('同步后显示')
+          .fontSize(13)
+          .fontColor($r('app.color.text_tertiary'))
+          .margin({ top: 10 })
+      } else {
+        Row() {
+          Row()
+            .width(this.academicPct().toFixed(1) + '%')
+            .height(6)
+            .borderRadius(3)
+            .backgroundColor($r('app.color.brand_text'))
+        }
+        .width('100%')
+        .height(6)
+        .borderRadius(3)
+        .backgroundColor($r('app.color.chip_bg_light'))
+        .margin({ top: 12 })
+
+        ForEach((this.academic as AcademicSummary).categories, (c: AcademicCategory) => {
+          Row() {
+            Text(c.name)
+              .fontSize(11)
+              .fontColor($r('app.color.text_secondary'))
+              .layoutWeight(1)
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+            Text(c.earned.toFixed(1) + ' / ' + c.required.toFixed(1))
+              .fontSize(11)
+              .fontColor(c.earned >= c.required ? $r('app.color.success') : $r('app.color.text_hint'))
+          }
+          .width('100%')
+          .margin({ top: 8 })
+        }, (c: AcademicCategory) => 'acad_' + c.name)
+      }
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .padding(14)
+    .backgroundColor($r('app.color.card_material_bg'))
+    .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
+    .border({ width: 0.5, color: $r('app.color.card_border') })
+    .borderRadius(12)
+    .margin({ left: 12, right: 12, top: 10 })
+    .visualEffect(this.cardLight)
+  }
 
   /** 本周剩余课程：给首页凑够可滚动内容，玻璃材质才有东西可折射 */
   private upcoming(): Course[] {

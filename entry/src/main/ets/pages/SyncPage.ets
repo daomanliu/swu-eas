@@ -2,12 +2,11 @@ import { webview } from '@kit.ArkWeb';
 import { uiMaterial } from '@kit.ArkUI';
 import { common } from '@kit.AbilityKit';
 import { TimetableRepo, SemesterRef, SemesterIndex, SyncedSemester } from '../model/TimetableRepo';
-import { JwSync, SyncedSemesterData, GradeItem, ExamItem } from '../model/JwSync';
+import { JwSync, SyncedSemesterData, GradeItem, ExamItem, AcademicSummary } from '../model/JwSync';
 import EntryFormAbility from '../entryformability/EntryFormAbility';
 
 /** 统一身份认证 → 教务系统（办事大厅点「教务系统」跳的就是这个） */
 const SSO_URL: string = 'https://uaaap.swu.edu.cn/cas/login?service=https%3A%2F%2Fjw.swu.edu.cn%2Fsso%2Fzllogin';
-const JW_KBCX: string = 'https://jw.swu.edu.cn/jwglxt/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N253508&layout=default';
 
 @Component
 export struct SyncPage {
@@ -208,6 +207,17 @@ export struct SyncPage {
         this.busy = false;
         this.started = false;
         return;
+      }
+      // 学业情况（学分汇总）只有一个页面，抓一次
+      try {
+        const actx: common.UIAbilityContext =
+          this.getUIContext().getHostContext() as common.UIAbilityContext;
+        const academic: AcademicSummary = await JwSync.fetchAcademic(cookie);
+        if (actx !== undefined && actx !== null) {
+          await TimetableRepo.saveAcademic(actx, JSON.stringify(academic));
+        }
+      } catch (err) {
+        // 学业情况失败不影响课表/成绩主流程
       }
       await this.save(all, grades, exams);
     } catch (e) {

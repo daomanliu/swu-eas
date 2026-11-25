@@ -77,11 +77,7 @@ struct TimetableCard {
           .width(FULL)
           .margin({ top: 4 })
 
-          Text(this.courseRemain)
-            .fontSize(10)
-            .fontColor(TAG_TEXT)
-            .maxLines(1)
-            .margin({ top: 3 })
+
         } else {
           Column() {
             Text('点此同步课表')
