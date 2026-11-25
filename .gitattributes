@@ -1,0 +1,12 @@
+# GitHub linguist：让 .ets（ArkTS）被识别为 TypeScript
+# 否则 GitHub 会把它归到 Other，仓库语言统计里看不到主语言
+*.ets linguist-language=TypeScript
+*.ets linguist-detectable=true
+
+# 文档与配置不计入语言统计
+*.md     linguist-documentation
+*.json5  linguist-detectable=false
+LICENSE  linguist-detectable=false
+
+# 统一换行，避免 Windows 提交带 CRLF
+* text=auto eol=lf
