@@ -3,6 +3,8 @@
 西南大学（SWU）教务系统的第三方 HarmonyOS 客户端：课表、成绩、考试、学业进度一屏搞定，数据只存在本机。
 
 > 个人自用项目，非学校官方应用。
+>
+> 作者：[@daomanliu](https://github.com/daomanliu)
 
 ## 功能
 
