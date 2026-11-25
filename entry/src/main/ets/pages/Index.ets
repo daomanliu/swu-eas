@@ -206,6 +206,14 @@ struct Index {
         this.exams = [];
       }
     }
+    const academicJsonInit: string = await TimetableRepo.loadAcademic(ctx);
+    if (academicJsonInit !== '') {
+      try {
+        this.academic = JSON.parse(academicJsonInit) as AcademicSummary;
+      } catch (err) {
+        this.academic = null;
+      }
+    }
     this.resetDefaultTerms();
 
     const idx = await TimetableRepo.loadIndexCached(ctx);
@@ -1250,7 +1258,8 @@ struct Index {
         .backgroundColor($r('app.color.chip_bg_light'))
         .margin({ top: 12 })
 
-        ForEach((this.academic as AcademicSummary).categories, (c: AcademicCategory) => {
+        ForEach((this.academic as AcademicSummary).categories.filter((x: AcademicCategory) => x.name !== '主修'),
+          (c: AcademicCategory) => {
           Row() {
             Text(c.name)
               .fontSize(11)
