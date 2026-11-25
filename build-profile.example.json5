@@ -1,0 +1,58 @@
+{
+  // 复制本文件为 build-profile.json5 后填入自己的签名配置
+  // 证书可在 DevEco Studio -> File -> Project Structure -> Signing Configs 自动生成
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\<你的用户名>\\.ohos\\config\\default_<项目名>_<hash>.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "<由 DevEco Studio 生成>",
+          "profile": "C:\\Users\\<你的用户名>\\.ohos\\config\\default_<项目名>_<hash>.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\<你的用户名>\\.ohos\\config\\default_<项目名>_<hash>.p12",
+          "storePassword": "<由 DevEco Studio 生成>"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "targetSdkVersion": "26.0.0",
+        "compatibleSdkVersion": "26.0.0",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}
