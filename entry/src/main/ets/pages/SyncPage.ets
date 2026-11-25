@@ -353,8 +353,7 @@ export struct SyncPage {
           }
           .padding({ left: 34, right: 34, top: 11, bottom: 11 })
           .borderRadius(22)
-          .backgroundColor(this.materialOk ? Color.Transparent : $r('app.color.header_material_bg'))
-          .systemMaterial(this.materialOk ? this.material : undefined)
+          .backgroundColor($r('app.color.brand_bg'))
           .margin({ top: 22 })
           .onClick(() => {
             this.onDone();
@@ -367,8 +366,7 @@ export struct SyncPage {
           }
           .padding({ left: 22, right: 22, top: 9, bottom: 9 })
           .borderRadius(18)
-          .backgroundColor(this.materialOk ? Color.Transparent : $r('app.color.card_material_bg'))
-          .systemMaterial(this.materialOk ? this.material : undefined)
+          .backgroundColor($r('app.color.chip_bg_light'))
           .margin({ top: 10 })
           .onClick(() => {
             this.done = false;
@@ -429,9 +427,7 @@ export struct SyncPage {
           .height(44)
           .justifyContent(FlexAlign.Center)
           .borderRadius(22)
-          .backgroundColor(this.busy ? $r('app.color.btn_disabled') : $r('app.color.header_material_bg'))
-          .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
-          .border({ width: 0.5, color: $r('app.color.card_border') })
+          .backgroundColor(this.busy ? $r('app.color.btn_disabled') : $r('app.color.brand_bg'))
           .margin({ top: 6 })
           .onClick(() => {
             if (!this.busy) {
